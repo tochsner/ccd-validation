@@ -1,7 +1,3 @@
 .DS_Store
 
-**/*.trees
-**/*.nexus
-**/*.log
-**/*.xml
-**/*.state
+data/**

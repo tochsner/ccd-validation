@@ -1,2 +1,7 @@
+.PHONY: run
+
 run:
-	sh src/datasets/create_datasets.sh
+	rm -f data/lphy/*
+	rm -f data/beast/*
+
+	sh src/datasets/create_yule_10_dataset.sh
