@@ -32,19 +32,21 @@ def calculate_golden_probabilities(input_tree_file: Path, output_csv_file: Path)
 
     tree_counter = Counter(pruned_trees)
 
-    outpout_str = ""
+    output_str = ""
 
     for tree, pruned_tree in zip(tree_handler.trees, pruned_trees):
         count = tree_counter[pruned_tree]
         probability = count / len(tree_handler.trees)
-        outpout_str += f"{tree.name},{probability}\n"
+        newick = to_pruned_newick(tree, keep_name=False)
+        output_str += f"{tree.name},{probability},{newick}\n"
 
-    output_csv_file.write_text(outpout_str)
+    with open(output_csv_file, 'w+') as f:
+            return f.write(output_str)
 
 
 def calculate_golden_probabilities_for_all_datasets():
     for tree_file in tqdm(list(INPUT_DATASETS_DIR.glob("*.trees"))):
-        output_csv_file = PROBABILITIES_DIR / f"{tree_file.stem}-golden.csv"
+        output_csv_file = PROBABILITIES_DIR / f"{tree_file.stem}-35000-golden.csv"
         calculate_golden_probabilities(tree_file, output_csv_file)
 
 
