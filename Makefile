@@ -1,10 +1,10 @@
 .PHONY: run
 
-run:
+run-simulations:
 	sh src/datasets/create_yule_10_dataset.sh
 
-build:
-	sh src/distribution/create_ccd.sh
-
 subsample:
-	python src/datasets/subsample_datasets.py
+	python src/preprocessing/subsample_datasets.py
+
+calculate-golden-probabilities:
+	python src/preprocessing/subsample_datasets.py
