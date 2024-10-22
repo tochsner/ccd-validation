@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:9bf4c14350eba548402145ba633adedb8a6c3ea7440d812c9c51c0c30ebcfc7d"
+content_hash = "sha256:056f23fbddd69c419ea51246043f84362b4876604eebc5113ee24b406655e9a3"
 
 [[metadata.targets]]
 requires_python = "==3.11.*"
@@ -991,6 +991,20 @@ dependencies = [
 files = [
     {file = "matplotlib_inline-0.1.7-py3-none-any.whl", hash = "sha256:df192d39a4ff8f21b1895d72e6a13f5fcc5099f00fa84384e0ea28c2cc0653ca"},
     {file = "matplotlib_inline-0.1.7.tar.gz", hash = "sha256:8423b23ec666be3d16e16b60bdd8ac4e86e840ebd1dd11a30b9f117f2fa0ab90"},
+]
+
+[[package]]
+name = "matplotlib-venn"
+version = "1.1.1"
+summary = "Functions for plotting area-proportional two- and three-way Venn diagrams in matplotlib."
+groups = ["default"]
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "scipy",
+]
+files = [
+    {file = "matplotlib-venn-1.1.1.tar.gz", hash = "sha256:d885bc015f5091a4b8a8138ff20a7ed166c33b5c36dbc0489f95a5cbc76a2ae5"},
 ]
 
 [[package]]
