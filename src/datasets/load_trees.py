@@ -40,3 +40,10 @@ def load_trees(
         trees = sample(trees, max_trees)
 
     return trees
+
+
+def load_trees_from_file(
+    tree_file: Path,
+) -> list[Tree]:
+    """Loads trees for the given tree file."""
+    return list(parse(tree_file, "nexus"))

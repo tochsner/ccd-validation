@@ -8,3 +8,6 @@ subsample:
 
 calculate-golden-probabilities:
 	python src/preprocessing/calculate_golden_probabilities.py
+
+validate-models:
+	python src/model_validation/validate_models.py
