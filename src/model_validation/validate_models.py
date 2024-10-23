@@ -1,7 +1,10 @@
 from pathlib import Path
 from Bio.Phylo.BaseTree import Tree
 import numpy as np
-from src.distribution_analysis.process_tree import get_observed_nodes, get_clade_split_df
+from src.distribution_analysis.process_tree import (
+    get_observed_nodes,
+    get_clade_split_df,
+)
 from src.utils.tree_utils import get_tree_height, get_taxa_names
 from src.datasets.load_trees import load_trees_from_file
 import matplotlib.pyplot as plt
@@ -12,9 +15,9 @@ import logging
 logging.getLogger().setLevel(logging.INFO)
 
 
-SAMPLES_DIR = Path("data/sampled_bccd")
+SAMPLES_DIR = Path("data/validation")
 REF_DIR = Path("data/beast")
-GRAPHS_DIR = Path("data/validation")
+GRAPHS_DIR = Path("data/validation_analysis")
 
 
 def _create_height_distribution_plots(
@@ -38,7 +41,7 @@ def _create_height_distribution_plots(
 
     plt.xlabel("Tree height")
 
-    max_displayed_height = np.percentile(sample_tree_heights + sample_tree_heights, 99)
+    max_displayed_height = np.percentile(sample_tree_heights + sample_tree_heights, 99.9)
     plt.xlim(0, max_displayed_height)
     plt.legend(loc="upper right")
 
@@ -59,8 +62,12 @@ def _create_branch_length_distribution_plots(
     df_ref_clade_splits = get_clade_split_df(ref_clade_splits)
     df_sample_clade_splits = get_clade_split_df(sample_clade_splits)
 
-    ref_branch_lengths = list(df_ref_clade_splits["left_branch"] + df_ref_clade_splits["right_branch"])
-    sample_branch_lengths = list(df_sample_clade_splits["left_branch"] + df_sample_clade_splits["right_branch"])
+    ref_branch_lengths = list(
+        df_ref_clade_splits["left_branch"] + df_ref_clade_splits["right_branch"]
+    )
+    sample_branch_lengths = list(
+        df_sample_clade_splits["left_branch"] + df_sample_clade_splits["right_branch"]
+    )
 
     sns.histplot(
         ref_branch_lengths,
@@ -75,7 +82,7 @@ def _create_branch_length_distribution_plots(
 
     plt.xlabel("Branch length")
 
-    max_displayed_length = np.percentile(ref_branch_lengths + sample_branch_lengths, 99)
+    max_displayed_length = np.percentile(ref_branch_lengths + sample_branch_lengths, 99.9)
     plt.xlim(0, max_displayed_length)
     plt.legend(loc="upper right")
 
@@ -94,7 +101,10 @@ if __name__ == "__main__":
     for sample_tree_file in SAMPLES_DIR.glob("*.trees"):
         model_name = sample_tree_file.name.removesuffix(".trees")
 
-        reference_tree_file = REF_DIR / sample_tree_file.name
+        reference_tree_file = REF_DIR / (
+            "-".join(sample_tree_file.name.removesuffix(".trees").split("-")[:-1])
+            + ".trees"
+        )
 
         logging.info(f"Load trees for {model_name}...")
 
