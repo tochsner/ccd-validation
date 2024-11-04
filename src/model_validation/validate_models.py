@@ -1,3 +1,6 @@
+import asyncio
+from collections import defaultdict
+import os
 from pathlib import Path
 from Bio.Phylo.BaseTree import Tree
 import numpy as np
@@ -15,69 +18,81 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from random import sample
+from multiprocessing import Pool
 
 
 logging.getLogger().setLevel(logging.INFO)
+sns.set_style("darkgrid")
 
 
 SAMPLES_DIR = Path("data/validation")
 REF_DIR = Path("data/beast")
 GRAPHS_DIR = Path("data/validation_analysis")
 
-NUM_PAIRS = 10_000
-SAMPLE_SIZE = 10_000
+NUM_PAIRS = 5_000
+SAMPLE_SIZE = 5_000
+NUM_BINS = 25
+
+
+def _load_sample_trees(sample_tree_file: Path):
+    return load_trees_from_file(sample_tree_file, SAMPLE_SIZE)
+
+
+def _load_ref_trees(sample_tree_file: Path):
+    file_name_wo_ext = sample_tree_file.name.removesuffix(".trees")
+    dataset_name, *_ = file_name_wo_ext.split("_")
+    return load_trees_from_file(REF_DIR / f"{dataset_name}.trees", SAMPLE_SIZE)
+
+
+def _get_bins(items: list[float]):
+    min_item = np.percentile(items, 0.01)
+    max_item = np.percentile(items, 99.99)
+    return np.linspace(min_item, max_item, NUM_BINS)
+
 
 def _create_height_distribution_plot(
-    model_name: str, reference_trees: list[Tree], sample_trees: list[Tree]
+    analysis_name: str, reference_trees: list[Tree], sample_trees: list[Tree]
 ):
-    logging.info(f"Create height distribution plots for {model_name}...")
+    logging.info(f"Create height distribution plots for {analysis_name}...")
 
     ref_tree_heights = [
-        get_tree_height(tree) for tree in sample(reference_trees, SAMPLE_SIZE)
+        get_tree_height(tree)
+        for tree in sample(reference_trees, min(SAMPLE_SIZE, len(reference_trees)))
     ]
     sample_tree_heights = [
-        get_tree_height(tree) for tree in sample(sample_trees, SAMPLE_SIZE)
+        get_tree_height(tree)
+        for tree in sample(sample_trees, min(SAMPLE_SIZE, len(sample_trees)))
     ]
 
-    sns.histplot(
-        ref_tree_heights,
-        stat="density",
-        label="Reference",
-    )
-    sns.histplot(
-        sample_tree_heights,
-        stat="density",
-        label="Sample",
-    )
+    bins = _get_bins(ref_tree_heights)
+
+    sns.histplot(ref_tree_heights, stat="density", label="Reference", bins=bins)
+    sns.histplot(sample_tree_heights, stat="density", label="Sample", bins=bins)
 
     plt.xlabel("Tree height")
-
-    max_displayed_height = np.percentile(
-        sample_tree_heights + sample_tree_heights, 99.9
-    )
-    plt.xlim(0, max_displayed_height)
     plt.legend(loc="upper right")
 
-    plt.savefig(GRAPHS_DIR / f"{model_name}-height-distribution.png", dpi=300)
+    plt.savefig(GRAPHS_DIR / f"{analysis_name}_height-distribution.png", dpi=200)
+    plt.clf()
     plt.close()
 
 
 def _create_branch_length_distribution_plot(
-    model_name: str, reference_trees: list[Tree], sample_trees: list[Tree]
+    analysis_name: str, reference_trees: list[Tree], sample_trees: list[Tree]
 ):
-    logging.info(f"Create branch length distribution plots for {model_name}...")
+    logging.info(f"Create branch length distribution plots for {analysis_name}...")
 
     taxa_names = get_taxa_names(reference_trees[0])
 
     _, ref_clade_splits = get_observed_nodes(
-        sample(reference_trees, SAMPLE_SIZE), taxa_names
+        sample(reference_trees, min(SAMPLE_SIZE, len(reference_trees))), taxa_names
     )
     _, sample_clade_splits = get_observed_nodes(
-        sample(sample_trees, SAMPLE_SIZE), taxa_names
+        sample(sample_trees, min(SAMPLE_SIZE, len(sample_trees))), taxa_names
     )
 
-    df_ref_clade_splits = get_clade_split_df(ref_clade_splits)
-    df_sample_clade_splits = get_clade_split_df(sample_clade_splits)
+    df_ref_clade_splits = get_clade_split_df(ref_clade_splits).sample(SAMPLE_SIZE)
+    df_sample_clade_splits = get_clade_split_df(sample_clade_splits).sample(SAMPLE_SIZE)
 
     ref_branch_lengths = list(
         df_ref_clade_splits["left_branch"] + df_ref_clade_splits["right_branch"]
@@ -86,88 +101,45 @@ def _create_branch_length_distribution_plot(
         df_sample_clade_splits["left_branch"] + df_sample_clade_splits["right_branch"]
     )
 
-    sns.histplot(
-        ref_branch_lengths,
-        stat="density",
-        label="Reference",
-    )
-    sns.histplot(
-        sample_branch_lengths,
-        stat="density",
-        label="Sample",
-    )
+    bins = _get_bins(ref_branch_lengths)
+
+    sns.histplot(ref_branch_lengths, stat="density", label="Reference", bins=bins)
+    sns.histplot(sample_branch_lengths, stat="density", label="Sample", bins=bins)
 
     plt.xlabel("Branch length")
-
-    max_displayed_length = np.percentile(
-        ref_branch_lengths + sample_branch_lengths, 99.9
-    )
-    plt.xlim(0, max_displayed_length)
     plt.legend(loc="upper right")
 
-    plt.savefig(GRAPHS_DIR / f"{model_name}-branch-length-distribution.png", dpi=300)
-    plt.close()
-
-
-def _create_posterior_error_plot(sample_log_file: Path, reference_log_file: Path):
-    logging.info(f"Create pairwise posterior-ratio error plots for {model_name}...")
-
-    sample_logs = pd.read_csv(sample_log_file)
-    reference_logs = pd.read_csv(reference_log_file, delimiter="\t")
-
-    sample_log_posteriors = dict(
-        zip(
-            sample_logs.state,
-            np.log(sample_logs.posterior / np.sum(sample_logs.posterior)),
-        )
-    )
-    reference_log_posteriors = dict(
-        zip(reference_logs.Sample.map(lambda x: f"STATE_{x}"), reference_logs.posterior)
-    )
-
-    states = list(reference_log_posteriors.keys())
-
-    log_errors = []
-    for _ in range(NUM_PAIRS):
-        state_a, state_b = sample(states, 2)
-        ref_log_posterior_diff = (
-            reference_log_posteriors[state_a] - reference_log_posteriors[state_b]
-        )
-        sample_log_posterior_diff = (
-            sample_log_posteriors[state_a] - sample_log_posteriors[state_b]
-        )
-
-        error = ref_log_posterior_diff - sample_log_posterior_diff
-        log_errors.append(error)
-
-    sns.histplot(log_errors, stat="density")
-
-    plt.xlabel("Pairwise posterior ratio error")
-
-    plt.savefig(GRAPHS_DIR / f"{model_name}-approximation-error.png", dpi=300)
+    plt.savefig(GRAPHS_DIR / f"{analysis_name}_branch-length-distribution.png", dpi=200)
+    plt.clf()
     plt.close()
 
 
 if __name__ == "__main__":
-    for sample_tree_file in SAMPLES_DIR.glob("*.trees"):
-        model_name = sample_tree_file.name.removesuffix(".trees")
+    sample_tree_files = list(SAMPLES_DIR.glob("*.trees"))
 
-        reference_tree_file = REF_DIR / (
-            "-".join(model_name.split("-")[:-1]) + ".trees"
+    logging.info(f"Load trees...")
+
+    with Pool(os.cpu_count()) as pool:
+        trees_per_sample = pool.map(_load_sample_trees, sample_tree_files)
+        ref_trees_per_sample = pool.map(_load_ref_trees, sample_tree_files)
+
+    logging.info(f"Start per-sample validation...")
+
+    dataset_indices: dict[str, list[int]] = defaultdict(list)
+
+    for i, (sample_tree_file, sample_trees, reference_trees) in enumerate(
+        zip(sample_tree_files, trees_per_sample, ref_trees_per_sample)
+    ):
+        file_name_wo_ext = sample_tree_file.name.removesuffix(".trees")
+        dataset_name, sample_type, model_name = file_name_wo_ext.split("_")
+
+        logging.info(f"Start validating {model_name} ({sample_type})...")
+
+        _create_height_distribution_plot(
+            file_name_wo_ext, reference_trees, sample_trees
         )
-
-        sample_log_file = SAMPLES_DIR / (model_name + ".log")
-        reference_log_file = REF_DIR / ("-".join(model_name.split("-")[:-1]) + ".log")
-
-        logging.info(f"Load trees for {model_name}...")
-
-        sample_trees = load_trees_from_file(sample_tree_file)
-        reference_trees = load_trees_from_file(reference_tree_file)
-
-        logging.info(f"Start validating {model_name}...")
-
-        _create_height_distribution_plot(model_name, reference_trees, sample_trees)
         _create_branch_length_distribution_plot(
-            model_name, reference_trees, sample_trees
+            file_name_wo_ext, reference_trees, sample_trees
         )
-        _create_posterior_error_plot(sample_log_file, reference_log_file)
+
+        dataset_indices[dataset_name].append(i)

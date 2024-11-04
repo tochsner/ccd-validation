@@ -1,7 +1,8 @@
 .PHONY: run
 
 run-simulations:
-	sh src/datasets/create_yule_10_dataset.sh
+	# sh src/datasets/create_yule_10_dataset.sh
+	sh src/datasets/create_yule_10_fixed_dataset.sh
 
 subsample:
 	python src/preprocessing/subsample_datasets.py
@@ -11,3 +12,6 @@ calculate-golden-probabilities:
 
 validate-models:
 	python src/model_validation/validate_models.py
+
+run-benchmark:
+	python src/model_validation/model_benchmark.py

@@ -1,4 +1,5 @@
 from enum import Enum
+import itertools
 from pathlib import Path
 from random import sample
 from typing import Optional
@@ -32,18 +33,23 @@ def load_trees(
         if max_trees and max_trees <= len(trees):
             break
         if max_files and max_files <= i:
+            print("break")
             break
+
+        print(file)
 
         trees += parse(file, "nexus")
 
     if max_trees and max_trees < len(trees):
         trees = sample(trees, max_trees)
 
+    print(len(trees))
+
     return trees
 
 
 def load_trees_from_file(
-    tree_file: Path,
+    tree_file: Path, max_trees: Optional[int] = None
 ) -> list[Tree]:
     """Loads trees for the given tree file."""
-    return list(parse(tree_file, "nexus"))
+    return list(itertools.islice(parse(tree_file, "nexus"), max_trees))

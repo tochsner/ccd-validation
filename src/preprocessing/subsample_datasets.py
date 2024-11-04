@@ -2,7 +2,6 @@ from pathlib import Path
 from nexus import NexusReader
 from nexus.handlers.tree import TreeHandler
 from random import sample
-from tqdm import tqdm
 
 
 DATASET_SIZES = [3, 10, 30, 100, 300, 1_000, 3_000, 10_000]
@@ -20,7 +19,7 @@ def subsample_trees(input_tree_file: Path, output_tree_file: Path, num_trees: in
 
 
 def create_subsampled_datasets():
-    for tree_file in tqdm(list(INPUT_DATASETS_DIR.glob("*.trees"))):
+    for tree_file in INPUT_DATASETS_DIR.glob("*.trees"):
         for dataset_size in DATASET_SIZES:
             output_tree_file = (
                 SUBSAMPLED_DATASETS_DIR / f"{tree_file.stem}-{dataset_size}.trees"

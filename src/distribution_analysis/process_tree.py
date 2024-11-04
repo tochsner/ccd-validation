@@ -1,6 +1,5 @@
 from Bio.Phylo.BaseTree import Tree as BioTree, Clade as BioClade
 import pandas as pd
-from tqdm import tqdm
 from src.distribution_analysis.clade import (
     ObservedLeaf,
     ObservedCladeSplit,
@@ -87,7 +86,7 @@ def get_observed_nodes(
     observed_nodes: list[ObservedNode] = []
     observed_clade_splits: list[ObservedCladeSplit] = []
 
-    for i, tree in tqdm(enumerate(list(trees))):
+    for i, tree in enumerate(list(trees)):
         _process_tree(
             observed_nodes,
             observed_clade_splits,
@@ -116,7 +115,7 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
         "height": [],
     }
 
-    for clade_split in tqdm(clade_splits):
+    for clade_split in clade_splits:
         df_dict["tree_index"].append(clade_split.tree_index)
         df_dict["newick_tree"].append(clade_split.newick_tree)
         df_dict["clade_split"].append(str(clade_split))
