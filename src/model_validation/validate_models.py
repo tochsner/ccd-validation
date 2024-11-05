@@ -45,8 +45,8 @@ def _load_ref_trees(sample_tree_file: Path):
 
 
 def _get_bins(items: list[float]):
-    min_item = np.percentile(items, 0.01)
-    max_item = np.percentile(items, 99.99)
+    min_item = np.percentile(items, 0.001)
+    max_item = np.percentile(items, 99.999)
     return np.linspace(min_item, max_item, NUM_BINS)
 
 

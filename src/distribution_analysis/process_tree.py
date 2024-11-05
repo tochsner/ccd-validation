@@ -109,6 +109,7 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
         "left_branch": [],
         "right_branch": [],
         "min_branch": [],
+        "min_branch_down": [],
         "max_branch": [],
         "distance_to_root": [],
         "distance_to_leaf": [],
@@ -129,9 +130,27 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
         df_dict["min_branch"].append(min(left, right))
         df_dict["max_branch"].append(max(left, right))
 
+        if left < right:
+            if not isinstance(clade_split.left_clade, ObservedCladeSplit):
+                df_dict["min_branch_down"].append(None)
+            else:
+                left = clade_split.left_clade.left_clade.height - clade_split.left_clade.height
+                right = clade_split.left_clade.right_clade.height - clade_split.left_clade.height
+                df_dict["min_branch_down"].append(min(left, right))
+        else:
+            if not isinstance(clade_split.right_clade, ObservedCladeSplit):
+                df_dict["min_branch_down"].append(None)
+            else:
+                left = clade_split.right_clade.left_clade.height - clade_split.right_clade.height
+                right = clade_split.right_clade.right_clade.height - clade_split.right_clade.height
+                df_dict["min_branch_down"].append(min(left, right))
+
         df_dict["distance_to_root"].append(clade_split.distance_to_root)
         df_dict["distance_to_leaf"].append(clade_split.distance_to_leaf)
         df_dict["height"].append(clade_split.height)
 
     df_branches = pd.DataFrame(df_dict)
+
+    df_branches["clade_split_count"] = df_branches.groupby("clade_split")["clade_split"].transform("count")
+
     return df_branches

@@ -23,7 +23,7 @@ SAMPLES_DIR = Path("data/validation")
 REF_DIR = Path("data/beast")
 GRAPHS_DIR = Path("data/validation_analysis")
 
-NUM_PAIRS = 1_000_000
+NUM_PAIRS = 2_000_000
 
 
 def _calculate_posterior_errors(
@@ -37,7 +37,7 @@ def _calculate_posterior_errors(
     sample_log_posteriors = dict(
         zip(
             sample_logs.state,
-            np.log(sample_logs.posterior / sample_logs.posterior.sum()),
+            np.log(sample_logs.posterior / np.sum(sample_logs.posterior)),
         )
     )
     reference_log_posteriors = dict(
@@ -70,10 +70,12 @@ def _plot_posterior_error(dataset_name: str, error_per_model: dict[str, list]):
         for model_name, error in error_per_model.items()
     }
     mean_abs_error_per_model = dict(
-        sorted(mean_abs_error_per_model.items(), key=lambda x: x[1])
+        sorted(mean_abs_error_per_model.items(), key=lambda x: x[1])[:5]
     )
 
     sns.barplot(mean_abs_error_per_model)
+
+    plt.ylim([min(mean_abs_error_per_model.values()) - 0.1, max(mean_abs_error_per_model.values()) + 0.1])
 
     plt.xlabel(f"Abs. Posterior Ratio Error ({dataset_name})")
     plt.xticks(rotation=30)
