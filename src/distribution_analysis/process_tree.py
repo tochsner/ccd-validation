@@ -15,6 +15,7 @@ def _process_tree(
     newick_tree: str,
     bio_clade: BioClade,
     taxa_names: list[str],
+    parent_height: float = 0,
     height: float = 0,
     distance_to_root: int = 0,
 ) -> ObservedNode:
@@ -28,6 +29,7 @@ def _process_tree(
         node = ObservedLeaf(
             node_bitstring=node_bitstring,
             height=height,
+            parent_height=parent_height,
             distance_to_root=distance_to_root,
             distance_to_leaf=0,
             tree_index=tree_index,
@@ -43,6 +45,7 @@ def _process_tree(
         newick_tree,
         bio_clade.clades[0],
         taxa_names,
+        height,
         height + (bio_clade.clades[0].branch_length or 0),
         distance_to_root + 1,
     )
@@ -53,6 +56,7 @@ def _process_tree(
         newick_tree,
         bio_clade.clades[1],
         taxa_names,
+        height,
         height + (bio_clade.clades[1].branch_length or 0),
         distance_to_root + 1,
     )
@@ -63,6 +67,7 @@ def _process_tree(
         node_bitstring=split_bitstring,
         bitstring=(left_clade.node_bitstring, right_clade.node_bitstring),
         height=height,
+        parent_height=parent_height,
         left_clade=left_clade,
         right_clade=right_clade,
         distance_to_root=distance_to_root,

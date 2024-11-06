@@ -25,9 +25,9 @@ logging.getLogger().setLevel(logging.INFO)
 sns.set_style("darkgrid")
 
 
-SAMPLES_DIR = Path("data/validation")
+SAMPLES_DIR = Path("data/distribution_validation")
 REF_DIR = Path("data/beast")
-GRAPHS_DIR = Path("data/validation_analysis")
+GRAPHS_DIR = Path("data/distribution_validation_analysis")
 
 NUM_PAIRS = 5_000
 SAMPLE_SIZE = 5_000

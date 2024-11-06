@@ -7,6 +7,7 @@ class ObservedNode(ABC):
     tree_index: int
     newick_tree: str
     node_bitstring: int
+    parent_height: float | int
     height: float | int
     distance_to_root: int
     distance_to_leaf: int
