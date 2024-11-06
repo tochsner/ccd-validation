@@ -13,5 +13,8 @@ calculate-golden-probabilities:
 validate-models:
 	python src/model_validation/validate_models.py
 
+map-validation:
+	python src/map_validation/map_validation.py
+
 run-benchmark:
 	python src/model_validation/model_benchmark.py
