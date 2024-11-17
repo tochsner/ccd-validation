@@ -11,10 +11,10 @@ calculate-golden-probabilities:
 	python src/preprocessing/calculate_golden_probabilities.py
 
 validate-models:
-	python src/model_validation/validate_models.py
+	python src/distribution_validation/validate_models.py
 
 map-validation:
 	python src/map_validation/map_validation.py
 
 run-benchmark:
-	python src/model_validation/model_benchmark.py
+	python src/distribution_validation/model_benchmark.py

@@ -70,7 +70,7 @@ def _plot_posterior_error(dataset_name: str, error_per_model: dict[str, list]):
         for model_name, error in error_per_model.items()
     }
     mean_abs_error_per_model = dict(
-        sorted(mean_abs_error_per_model.items(), key=lambda x: x[1])[:5]
+        sorted(mean_abs_error_per_model.items(), key=lambda x: x[1])[:4]
     )
 
     sns.barplot(mean_abs_error_per_model)
@@ -78,7 +78,7 @@ def _plot_posterior_error(dataset_name: str, error_per_model: dict[str, list]):
     plt.ylim([min(mean_abs_error_per_model.values()) - 0.1, max(mean_abs_error_per_model.values()) + 0.1])
 
     plt.xlabel(f"Abs. Posterior Ratio Error ({dataset_name})")
-    plt.xticks(rotation=30)
+    plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
 
     plt.savefig(GRAPHS_DIR / f"{dataset_name}_posterior-ratio-error.png", dpi=300)
