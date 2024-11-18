@@ -1,4 +1,3 @@
-import asyncio
 from collections import defaultdict
 import os
 from pathlib import Path
@@ -14,7 +13,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
 from pathlib import Path
-import pandas as pd
 import numpy as np
 import seaborn as sns
 from random import sample
@@ -26,7 +24,7 @@ sns.set_style("darkgrid")
 
 
 SAMPLES_DIR = Path("data/distribution_validation")
-REF_DIR = Path("data/beast")
+REF_DIR = Path("data/mcmc_runs")
 GRAPHS_DIR = Path("data/distribution_validation_analysis")
 
 NUM_PAIRS = 5_000

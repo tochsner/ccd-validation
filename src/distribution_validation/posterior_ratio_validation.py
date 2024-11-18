@@ -1,9 +1,6 @@
-import asyncio
 from collections import defaultdict
-import os
 from pathlib import Path
 import numpy as np
-from src.datasets.load_trees import load_trees_from_file
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
@@ -12,7 +9,6 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from random import sample
-from multiprocessing import Pool
 
 
 logging.getLogger().setLevel(logging.INFO)
@@ -20,7 +16,7 @@ sns.set_style("darkgrid")
 
 
 SAMPLES_DIR = Path("data/distribution_validation")
-REF_DIR = Path("data/beast")
+REF_DIR = Path("data/mcmc_runs")
 GRAPHS_DIR = Path("data/distribution_validation_analysis")
 
 NUM_PAIRS = 2_000_000
@@ -70,12 +66,12 @@ def _plot_posterior_error(dataset_name: str, error_per_model: dict[str, list]):
         for model_name, error in error_per_model.items()
     }
     mean_abs_error_per_model = dict(
-        sorted(mean_abs_error_per_model.items(), key=lambda x: x[1])[:4]
+        sorted(mean_abs_error_per_model.items(), key=lambda x: x[1])
     )
 
     sns.barplot(mean_abs_error_per_model)
 
-    plt.ylim([min(mean_abs_error_per_model.values()) - 0.1, max(mean_abs_error_per_model.values()) + 0.1])
+    plt.ylim([0, max(mean_abs_error_per_model.values()) + 0.1])
 
     plt.xlabel(f"Abs. Posterior Ratio Error ({dataset_name})")
     plt.xticks(rotation=30, ha="right")

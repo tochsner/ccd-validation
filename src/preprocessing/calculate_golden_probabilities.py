@@ -7,7 +7,7 @@ from tqdm import tqdm
 from Bio.Nexus.Trees import Tree as NexusTree
 
 
-INPUT_DATASETS_DIR = Path("data/beast")
+INPUT_DATASETS_DIR = Path("data/mcmc_runs")
 PROBABILITIES_DIR = Path("data/probabilities")
 
 

@@ -22,7 +22,7 @@ def load_trees(
     """Loads trees for the given datasets."""
     match dataset:
         case TreeDataset.YULE_10:
-            files = Path("data/beast").glob("yule-10-*.trees")
+            files = Path("data/mcmc_runs").glob("yule-10-*.trees")
         case TreeDataset.DS_1:
             files = Path("data/ds/DS1_HKY/config7").glob("**/*.trees")
         case TreeDataset.DS_4:

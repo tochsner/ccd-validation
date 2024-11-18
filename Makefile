@@ -1,8 +1,7 @@
 .PHONY: run
 
 run-simulations:
-	# sh src/datasets/create_yule_10_dataset.sh
-	sh src/datasets/create_yule_10_fixed_dataset.sh
+	sh src/datasets/create_yule_10_dataset.sh
 
 subsample:
 	python src/preprocessing/subsample_datasets.py
@@ -10,11 +9,20 @@ subsample:
 calculate-golden-probabilities:
 	python src/preprocessing/calculate_golden_probabilities.py
 
-validate-models:
-	python src/distribution_validation/validate_models.py
+density-validation:
+	python src/distribution_validation/density_validation.py
+
+marginals-validation:
+	python src/distribution_validation/marginals_validation.py
+
+posterior-ratio-validation:
+	python src/distribution_validation/posterior_ratio_validation.py
 
 map-validation:
 	python src/map_validation/map_validation.py
 
-run-benchmark:
-	python src/distribution_validation/model_benchmark.py
+validation:
+	make density-validation
+	make marginals-validation
+	make posterior-ratio-validation
+	make map-validation

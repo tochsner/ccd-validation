@@ -10,7 +10,7 @@ sh "$BEAST_PKG/lphybeast/bin/lphybeast" src/datasets/yule_10_fixed.lphy \
     -le $LOG_EVERY
 
 # run beast to generate the posterior tree samples
-cd data/beast
+cd data/mcmc_runs
 for i in $(seq 37 $(($NUM_REPS - 1))); do
     sh "$BEAST/bin/beast" -overwrite -threads -1 ../lphy/yule-10-fixed-$i.xml
 done

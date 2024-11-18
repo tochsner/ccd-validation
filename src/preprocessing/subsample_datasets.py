@@ -5,7 +5,7 @@ from random import sample
 
 
 DATASET_SIZES = [3, 10, 30, 100, 300, 1_000, 3_000, 10_000]
-INPUT_DATASETS_DIR = Path("data/beast")
+INPUT_DATASETS_DIR = Path("data/mcmc_runs")
 SUBSAMPLED_DATASETS_DIR = Path("data/subsampled")
 
 
