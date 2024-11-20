@@ -15,9 +15,9 @@ logging.getLogger().setLevel(logging.INFO)
 sns.set_style("darkgrid")
 
 
-SAMPLES_DIR = Path("data/distribution_validation")
-REF_DIR = Path("data/mcmc_runs")
-GRAPHS_DIR = Path("data/distribution_validation_analysis")
+MCMC_DIR = Path("data/thinned_mcmc_runs")
+SAMPLES_DIR = Path("data/distribution_data")
+GRAPHS_DIR = Path("plots/posterior_ratio_plots")
 
 NUM_PAIRS = 2_000_000
 
@@ -83,12 +83,12 @@ def _plot_posterior_error(dataset_name: str, error_per_model: dict[str, list]):
 
 
 if __name__ == "__main__":
-    sample_tree_files = list(SAMPLES_DIR.glob("*.trees"))
+    sample_tree_files = list(SAMPLES_DIR.glob("*.log"))
 
     dataset_indices: dict[str, list[int]] = defaultdict(list)
 
     for i, sample_tree_file in enumerate(sample_tree_files):
-        file_name_wo_ext = sample_tree_file.name.removesuffix(".trees")
+        file_name_wo_ext = sample_tree_file.name.removesuffix(".log")
         dataset_name, *_ = file_name_wo_ext.split("_")
         dataset_indices[dataset_name].append(i)
 
@@ -100,11 +100,11 @@ if __name__ == "__main__":
         for i in indices:
             sample_tree_file = sample_tree_files[i]
 
-            file_name_wo_ext = sample_tree_file.name.removesuffix(".trees")
-            dataset_name, sample_type, model_name = file_name_wo_ext.split("_")
+            file_name_wo_ext = sample_tree_file.name.removesuffix(".log")
+            dataset_name, run, sample_type, model_name = file_name_wo_ext.split("_")
 
-            sample_log_file = SAMPLES_DIR / f"{dataset_name}_logs_{model_name}.log"
-            reference_log_file = REF_DIR / f"{dataset_name}.log"
+            sample_log_file = SAMPLES_DIR / f"{dataset_name}_{run}_logs_{model_name}.log"
+            reference_log_file = MCMC_DIR / f"{dataset_name}_{run}.log"
 
             error_per_model[model_name] = _calculate_posterior_errors(
                 file_name_wo_ext, sample_log_file, reference_log_file

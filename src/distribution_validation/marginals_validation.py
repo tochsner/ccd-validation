@@ -23,9 +23,9 @@ logging.getLogger().setLevel(logging.INFO)
 sns.set_style("darkgrid")
 
 
-SAMPLES_DIR = Path("data/distribution_validation")
-REF_DIR = Path("data/mcmc_runs")
-GRAPHS_DIR = Path("data/distribution_validation_analysis")
+MCMC_DIR = Path("data/thinned_mcmc_runs")
+SAMPLES_DIR = Path("data/distribution_data")
+GRAPHS_DIR = Path("plots/marginals_plots")
 
 NUM_PAIRS = 5_000
 SAMPLE_SIZE = 5_000
@@ -38,8 +38,8 @@ def _load_sample_trees(sample_tree_file: Path):
 
 def _load_ref_trees(sample_tree_file: Path):
     file_name_wo_ext = sample_tree_file.name.removesuffix(".trees")
-    dataset_name, *_ = file_name_wo_ext.split("_")
-    return load_trees_from_file(REF_DIR / f"{dataset_name}.trees", SAMPLE_SIZE)
+    dataset_name, run, *_ = file_name_wo_ext.split("_")
+    return load_trees_from_file(MCMC_DIR / f"{dataset_name}_{run}.trees", SAMPLE_SIZE)
 
 
 def _get_bins(items: list[float]):
@@ -115,7 +115,14 @@ def _create_branch_length_distribution_plot(
 if __name__ == "__main__":
     sample_tree_files = list(SAMPLES_DIR.glob("*.trees"))
 
-    logging.info(f"Load trees...")
+    sample_tree_files = [
+        Path("data/distribution_data/yule-10_241_sampled-trees_gamma-mu-sigma-beta-old-old.trees"),
+        Path("data/distribution_data/yule-10_241_sampled-trees_mu-sigma-beta-old-old.trees"),
+        Path("data/distribution_data/yule-20_197_sampled-trees_mu-sigma-beta-old-old.trees"),
+        Path("data/distribution_data/yule-20_197_sampled-trees_gamma-mu-sigma-beta-old-old.trees"), 
+    ]
+
+    logging.info(f"Load {len(sample_tree_files)} trees...")
 
     with Pool(os.cpu_count()) as pool:
         trees_per_sample = pool.map(_load_sample_trees, sample_tree_files)
@@ -123,13 +130,11 @@ if __name__ == "__main__":
 
     logging.info(f"Start per-sample validation...")
 
-    dataset_indices: dict[str, list[int]] = defaultdict(list)
-
     for i, (sample_tree_file, sample_trees, reference_trees) in enumerate(
         zip(sample_tree_files, trees_per_sample, ref_trees_per_sample)
     ):
         file_name_wo_ext = sample_tree_file.name.removesuffix(".trees")
-        dataset_name, sample_type, model_name = file_name_wo_ext.split("_")
+        *_, sample_type, model_name = file_name_wo_ext.split("_")
 
         logging.info(f"Start validating {model_name} ({sample_type})...")
 
@@ -139,5 +144,3 @@ if __name__ == "__main__":
         _create_branch_length_distribution_plot(
             file_name_wo_ext, reference_trees, sample_trees
         )
-
-        dataset_indices[dataset_name].append(i)

@@ -1,3 +1,4 @@
+from scipy.stats import binom
 import seaborn as sns
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -12,9 +13,8 @@ import warnings
 warnings.filterwarnings("ignore")
 sns.set_style("whitegrid")
 
-POSTERIOR_DIR = Path("data/hpd_validation")
-GRAPHS_DIR = Path("data/hpd_validation_analysis")
-GRAPHS_DIR = Path("data/distribution_validation_analysis")
+POSTERIOR_DIR = Path("data/true_tree_density_data")
+GRAPHS_DIR = Path("plots/true_tree_density_plots")
 
 
 def _get_ecdf_error(samples):
@@ -29,7 +29,7 @@ def _get_ecdf_error(samples):
     return error
 
 
-def plot_empirical_cdf():
+def generate_empirical_cdf_plots():
     dict_true_tree_percentiles = {
         "dataset_name": [],
         "model_name": [],
@@ -38,8 +38,7 @@ def plot_empirical_cdf():
 
     for posterior_file in tqdm(list(POSTERIOR_DIR.glob("*.log"))):
         file_name_wo_ext = posterior_file.name.removesuffix(".log")
-        run_name, model_name = file_name_wo_ext.split("_")
-        dataset_name = "-".join(run_name.split("-")[:-1])
+        dataset_name, _, model_name = file_name_wo_ext.split("_")
 
         posterior_df = pd.read_csv(posterior_file)
 
@@ -56,6 +55,46 @@ def plot_empirical_cdf():
     df_true_tree_percentiles = pd.DataFrame(dict_true_tree_percentiles)
 
     for dataset in df_true_tree_percentiles.dataset_name.unique():
+        # plot histogram of true tree percentiles
+
+        df_true_tree_percentiles["rounded_true_tree_percentile"] = (
+            df_true_tree_percentiles.true_tree_percentile // 10 * 10
+        )
+        df_percentile_counts = (
+            df_true_tree_percentiles.drop(columns="true_tree_percentile", inplace=False)
+            .groupby("model_name")
+            .value_counts()
+            .reset_index()
+        )
+
+        fig = sns.barplot(
+            df_percentile_counts,
+            x="rounded_true_tree_percentile",
+            y="count",
+            hue="model_name",
+            errorbar=None,
+        )
+
+        plt.title(f"Number of Runs per True Tree Percentile ({dataset})")
+        plt.xlabel("True Tree Percentile")
+        plt.ylabel("Number of Runs")
+        fig.get_legend().set_title("")
+
+        runs_per_model = len(df_true_tree_percentiles) / len(
+            df_percentile_counts["model_name"].unique()
+        )
+        expected_counts = runs_per_model / 10
+        lower_bound, upper_bound = binom.interval(0.95, runs_per_model, 1 / 10)
+
+        plt.axhline(expected_counts, color="gray", linestyle="solid")
+        plt.axhspan(lower_bound, upper_bound, color="gray", alpha=0.2)
+
+        plt.tight_layout()
+        plt.savefig(GRAPHS_DIR / f"{dataset}_histogram.png", dpi=300)
+        plt.close()
+
+        # plot empirical cumulative distribution function
+
         fig = sns.ecdfplot(
             df_true_tree_percentiles[df_true_tree_percentiles.dataset_name == dataset],
             x="true_tree_percentile",
@@ -64,13 +103,16 @@ def plot_empirical_cdf():
 
         plt.plot([0, 100], [0, 1], color="black", linestyle="solid")
 
-        plt.title("Empirical CDF")
+        plt.title(f"Empirical CDF ({dataset})")
         plt.xlabel("True Tree Percentile")
         plt.ylabel("Empirical Cumulative Probability")
         fig.get_legend().set_title("")
 
+        plt.tight_layout()
         plt.savefig(GRAPHS_DIR / f"{dataset}_ecfd.png", dpi=300)
         plt.close()
+
+        # plot errors per model
 
         sns.barplot(
             df_true_tree_percentiles.groupby("model_name")
@@ -78,14 +120,15 @@ def plot_empirical_cdf():
             .sort_values(),  # type: ignore
         )
 
-        plt.title("Empirical CDF Error")
+        plt.title(f"Empirical CDF Error ({dataset})")
         plt.xlabel("Model")
         plt.ylabel("ECDF Error")
         plt.xticks(rotation=30, ha="right")
 
+        plt.tight_layout()
         plt.savefig(GRAPHS_DIR / f"{dataset}_ecfd-error.png", dpi=300)
         plt.close()
 
 
 if __name__ == "__main__":
-    plot_empirical_cdf()
+    generate_empirical_cdf_plots()
