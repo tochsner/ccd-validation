@@ -26,6 +26,9 @@ def _get_ecdf_error(samples):
         quantile_size = (ecfd.quantiles[i + 1] - ecfd.quantiles[i]) / 100
         error += quantile_size * abs(ecfd.quantiles[i] / 100 - ecfd.probabilities[i])
 
+    quantile_size = (100.0 - ecfd.quantiles[-1]) / 100
+    error += quantile_size * abs(ecfd.quantiles[-1] / 100 - ecfd.probabilities[-1]) 
+
     return error
 
 

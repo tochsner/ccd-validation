@@ -1,3 +1,4 @@
+import logging
 from Bio.Phylo.BaseTree import Tree
 
 from src.utils.tree_utils import get_taxa_names
@@ -109,6 +110,9 @@ def heights_error(query_tree: Tree, ref_tree: Tree) -> float:
     query_clades_to_node = {node.node_bitstring: node for node in query_nodes}
     ref_clades_to_node = {node.node_bitstring: node for node in ref_nodes}
 
+    total_query_tree_height = max(query_nodes, key=lambda x: x.height).height
+    total_ref_tree_height = max(ref_nodes, key=lambda x: x.height).height
+
     heights_error = 0.0
 
     for query_clade, node in query_clades_to_node.items():
@@ -116,6 +120,9 @@ def heights_error(query_tree: Tree, ref_tree: Tree) -> float:
             query_clade, list(ref_clades_to_node.keys())
         )
 
-        heights_error += abs(node.height - ref_clades_to_node[ref_clade].height)
+        query_distance_to_present = node.height - total_query_tree_height
+        ref_distance_to_present = ref_clades_to_node[ref_clade].height - total_ref_tree_height
+
+        heights_error += abs(query_distance_to_present - ref_distance_to_present)
 
     return heights_error

@@ -7,7 +7,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from src.map_validation.tree_scores import (
-    height_score,
+    heights_error,
     rooted_branch_score,
     squared_rooted_branch_score,
 )
@@ -23,7 +23,7 @@ GRAPHS_DIR = Path("plots/map_plots")
 SCORES = {
     "Rooted Branch Score": rooted_branch_score,
     "Squared RBS": squared_rooted_branch_score,
-    "Height Score": height_score,
+    "Height Score": heights_error,
 }
 NUM_SCORES = len(SCORES)
 

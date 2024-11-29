@@ -62,7 +62,7 @@ def _create_height_distribution_plot(
         for tree in sample(sample_trees, min(SAMPLE_SIZE, len(sample_trees)))
     ]
 
-    bins = _get_bins(ref_tree_heights + sample_tree_heights)
+    bins = _get_bins(ref_tree_heights)
 
     sns.histplot(ref_tree_heights, stat="density", label="Reference", bins=bins)
     sns.histplot(sample_tree_heights, stat="density", label="Sample", bins=bins)

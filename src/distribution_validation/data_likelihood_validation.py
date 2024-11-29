@@ -49,21 +49,39 @@ def generate_data_likelihood_plots():
         "dataset_name"
     ):
         df_likelihoods_per_dataset = df_likelihoods_per_dataset.sort_values(
-            "data_likelihood"
+            "sample_size"
         )
 
-        # plot data likelihoods
+        # plot data likelihoods on full dataset
+
+        sns.barplot(
+            df_likelihoods_per_dataset[df_likelihoods_per_dataset.sample_size == "full"],
+            x="model_name",
+            y="data_likelihood",
+        )
+
+        plt.title(f"Data Likelihood ({dataset_name})")
+        plt.xlabel("Model")
+        plt.ylabel("Data Likelihood")
+
+        plt.xticks(rotation=30, ha="right")
+        plt.tight_layout()
+
+        plt.savefig(PLOTS_DIR / f"{dataset_name}_full-data-likelihood.png", dpi=300)
+        plt.close()
+        
+        # plot data likelihoods for different sample sizes
 
         sns.lineplot(
             df_likelihoods_per_dataset,
             x="sample_size",
             y="data_likelihood",
             hue="model_name",
-            ci=None,
+            errorbar=None
         )
 
         plt.title(f"Data Likelihood ({dataset_name})")
-        plt.xlabel("Model")
+        plt.xlabel("Sample Size")
         plt.ylabel("Data Likelihood")
 
         plt.xticks(rotation=30, ha="right")
