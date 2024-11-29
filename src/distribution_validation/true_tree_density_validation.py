@@ -53,15 +53,14 @@ def generate_empirical_cdf_plots():
         )
 
     df_true_tree_percentiles = pd.DataFrame(dict_true_tree_percentiles)
+    df_true_tree_percentiles["rounded_true_tree_percentile"] = (
+        df_true_tree_percentiles.true_tree_percentile // 10 * 10
+    )
 
-    for dataset in df_true_tree_percentiles.dataset_name.unique():
-        # plot histogram of true tree percentiles
-
-        df_true_tree_percentiles["rounded_true_tree_percentile"] = (
-            df_true_tree_percentiles.true_tree_percentile // 10 * 10
-        )
+    for dataset, df_dataset in df_true_tree_percentiles.groupby("dataset_name"):
+        # plot histogram of true tree percentiles        
         df_percentile_counts = (
-            df_true_tree_percentiles.drop(columns="true_tree_percentile", inplace=False)
+            df_dataset.drop(columns="true_tree_percentile", inplace=False)
             .groupby("model_name")
             .value_counts()
             .reset_index()
@@ -80,7 +79,7 @@ def generate_empirical_cdf_plots():
         plt.ylabel("Number of Runs")
         fig.get_legend().set_title("")
 
-        runs_per_model = len(df_true_tree_percentiles) / len(
+        runs_per_model = len(df_dataset) / len(
             df_percentile_counts["model_name"].unique()
         )
         expected_counts = runs_per_model / 10
@@ -96,7 +95,7 @@ def generate_empirical_cdf_plots():
         # plot empirical cumulative distribution function
 
         fig = sns.ecdfplot(
-            df_true_tree_percentiles[df_true_tree_percentiles.dataset_name == dataset],
+            df_dataset,
             x="true_tree_percentile",
             hue="model_name",
         )
@@ -115,7 +114,7 @@ def generate_empirical_cdf_plots():
         # plot errors per model
 
         sns.barplot(
-            df_true_tree_percentiles.groupby("model_name")
+            df_dataset.groupby("model_name")
             .apply(lambda x: _get_ecdf_error(x.true_tree_percentile))
             .sort_values(),  # type: ignore
         )

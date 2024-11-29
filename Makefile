@@ -21,8 +21,12 @@ posterior-ratio-validation:
 map-validation:
 	python src/map_validation/map_validation.py
 
+likelihood-validation:
+	python src/distribution_validation/data_likelihood_validation.py
+
 validation:
 	make true-tree-density-validation
 	make marginals-validation
 	make posterior-ratio-validation
 	make map-validation
+	make likelihood-validation

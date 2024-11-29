@@ -62,11 +62,12 @@ def _create_height_distribution_plot(
         for tree in sample(sample_trees, min(SAMPLE_SIZE, len(sample_trees)))
     ]
 
-    bins = _get_bins(ref_tree_heights)
+    bins = _get_bins(ref_tree_heights + sample_tree_heights)
 
     sns.histplot(ref_tree_heights, stat="density", label="Reference", bins=bins)
     sns.histplot(sample_tree_heights, stat="density", label="Sample", bins=bins)
 
+    plt.title(f"Tree Height Distribution ({analysis_name})")
     plt.xlabel("Tree height")
     plt.legend(loc="upper right")
 
@@ -104,6 +105,7 @@ def _create_branch_length_distribution_plot(
     sns.histplot(ref_branch_lengths, stat="density", label="Reference", bins=bins)
     sns.histplot(sample_branch_lengths, stat="density", label="Sample", bins=bins)
 
+    plt.title(f"Branch Length Distribution ({analysis_name})")
     plt.xlabel("Branch length")
     plt.legend(loc="upper right")
 
@@ -115,12 +117,12 @@ def _create_branch_length_distribution_plot(
 if __name__ == "__main__":
     sample_tree_files = list(SAMPLES_DIR.glob("*.trees"))
 
-    sample_tree_files = [
-        Path("data/distribution_data/yule-10_241_sampled-trees_gamma-mu-sigma-beta-old-old.trees"),
-        Path("data/distribution_data/yule-10_241_sampled-trees_mu-sigma-beta-old-old.trees"),
-        Path("data/distribution_data/yule-20_197_sampled-trees_mu-sigma-beta-old-old.trees"),
-        Path("data/distribution_data/yule-20_197_sampled-trees_gamma-mu-sigma-beta-old-old.trees"), 
-    ]
+    # sample_tree_files = [
+    #     Path("data/distribution_data/yule-10_241_sampled-trees_gamma-mu-sigma-beta-old-old.trees"),
+    #     Path("data/distribution_data/yule-10_241_sampled-trees_mu-sigma-beta-old-old.trees"),
+    #     Path("data/distribution_data/yule-20_197_sampled-trees_mu-sigma-beta-old-old.trees"),
+    #     Path("data/distribution_data/yule-20_197_sampled-trees_gamma-mu-sigma-beta-old-old.trees"), 
+    # ]
 
     logging.info(f"Load {len(sample_tree_files)} trees...")
 

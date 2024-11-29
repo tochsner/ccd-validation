@@ -27,3 +27,8 @@ Map Validation:
 
 1. Run `MapValidation`.
 2. Run `make map-validation` to create the plots.
+
+Data Likelihood Validation:
+
+1. Run `DistributionValidation`.
+2. Run `make likelihood-validation` to create the plots.

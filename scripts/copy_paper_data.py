@@ -2,11 +2,11 @@ from pathlib import Path
 import shutil
 from tqdm import tqdm
 
-RAW_DATA_DIR = Path("/Users/tobiaochsner/Downloads/Yule20")
+RAW_DATA_DIR = Path("/Users/tobiaochsner/Downloads/Coal40")
 MCMC_RUNS_DIR = Path("data/mcmc_runs")
 MCMC_CONFIG_DIR = Path("data/mcmc_config")
 
-dataset_name = "yule-20"
+dataset_name = "coal-40"
 
 for replication_dir in tqdm(list(RAW_DATA_DIR.glob("*"))):
     if not replication_dir.is_dir():
