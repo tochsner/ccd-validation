@@ -24,6 +24,9 @@ map-validation:
 likelihood-validation:
 	python src/distribution_validation/data_likelihood_validation.py
 
+num-parameters-analysis:
+	python src/distribution_validation/num_parameters_analysis.py
+
 validation:
 	make true-tree-density-validation
 	make marginals-validation

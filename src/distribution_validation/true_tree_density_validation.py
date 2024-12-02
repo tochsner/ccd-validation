@@ -11,14 +11,14 @@ import scipy.stats as stats
 import warnings
 
 warnings.filterwarnings("ignore")
-sns.set_style("whitegrid")
+sns.set_style("darkgrid")
 
 POSTERIOR_DIR = Path("data/true_tree_density_data")
 GRAPHS_DIR = Path("plots/true_tree_density_plots")
 
 
 def _get_ecdf_error(samples):
-    ecfd = stats.ecdf(samples).cdf
+    ecfd = stats.ecdf(samples.fillna(0)).cdf
 
     error = 0
 
@@ -27,7 +27,7 @@ def _get_ecdf_error(samples):
         error += quantile_size * abs(ecfd.quantiles[i] / 100 - ecfd.probabilities[i])
 
     quantile_size = (100.0 - ecfd.quantiles[-1]) / 100
-    error += quantile_size * abs(ecfd.quantiles[-1] / 100 - ecfd.probabilities[-1]) 
+    error += quantile_size * abs(ecfd.quantiles[-1] / 100 - ecfd.probabilities[-1])
 
     return error
 
@@ -46,13 +46,13 @@ def generate_empirical_cdf_plots():
         posterior_df = pd.read_csv(posterior_file)
 
         assert posterior_df.iloc[0]["tree"] == "true"
-        true_posterior = posterior_df.iloc[0]["posterior"]
+        true_posterior = posterior_df.iloc[0]["log_posterior"]
         posterior_df = posterior_df.drop(posterior_df.index[0])
 
         dict_true_tree_percentiles["dataset_name"].append(dataset_name)
         dict_true_tree_percentiles["model_name"].append(model_name)
         dict_true_tree_percentiles["true_tree_percentile"].append(
-            stats.percentileofscore(posterior_df.posterior, true_posterior)
+            stats.percentileofscore(posterior_df.log_posterior, true_posterior)
         )
 
     df_true_tree_percentiles = pd.DataFrame(dict_true_tree_percentiles)
@@ -61,7 +61,7 @@ def generate_empirical_cdf_plots():
     )
 
     for dataset, df_dataset in df_true_tree_percentiles.groupby("dataset_name"):
-        # plot histogram of true tree percentiles        
+        # plot histogram of true tree percentiles
         df_percentile_counts = (
             df_dataset.drop(columns="true_tree_percentile", inplace=False)
             .groupby("model_name")
@@ -82,8 +82,8 @@ def generate_empirical_cdf_plots():
         plt.ylabel("Number of Runs")
         fig.get_legend().set_title("")
 
-        runs_per_model = len(df_dataset) / len(
-            df_percentile_counts["model_name"].unique()
+        runs_per_model = int(
+            len(df_dataset) / len(df_percentile_counts["model_name"].unique())
         )
         expected_counts = runs_per_model / 10
         lower_bound, upper_bound = binom.interval(0.95, runs_per_model, 1 / 10)
@@ -122,7 +122,7 @@ def generate_empirical_cdf_plots():
             .sort_values(),  # type: ignore
         )
 
-        plt.title(f"Empirical CDF Error ({dataset})")
+        plt.title(f"Empirical CDF Error ({dataset}) ↓")
         plt.xlabel("Model")
         plt.ylabel("ECDF Error")
         plt.xticks(rotation=30, ha="right")
