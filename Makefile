@@ -24,8 +24,14 @@ map-validation:
 likelihood-validation:
 	python src/distribution_validation/data_likelihood_validation.py
 
+goodness-of-fit-validation:
+	python src/distribution_validation/goodness_of_fit_validation.py
+
 num-parameters-analysis:
 	python src/distribution_validation/num_parameters_analysis.py
+
+coverage-validation:
+	python src/matrix_validation/coverage_validation.py
 
 validation:
 	make true-tree-density-validation

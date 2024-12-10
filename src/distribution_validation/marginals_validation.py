@@ -117,13 +117,6 @@ def _create_branch_length_distribution_plot(
 if __name__ == "__main__":
     sample_tree_files = list(SAMPLES_DIR.glob("*.trees"))
 
-    # sample_tree_files = [
-    #     Path("data/distribution_data/yule-10_241_sampled-trees_gamma-mu-sigma-beta-old-old.trees"),
-    #     Path("data/distribution_data/yule-10_241_sampled-trees_mu-sigma-beta-old-old.trees"),
-    #     Path("data/distribution_data/yule-20_197_sampled-trees_mu-sigma-beta-old-old.trees"),
-    #     Path("data/distribution_data/yule-20_197_sampled-trees_gamma-mu-sigma-beta-old-old.trees"), 
-    # ]
-
     logging.info(f"Load {len(sample_tree_files)} trees...")
 
     with Pool(os.cpu_count()) as pool:

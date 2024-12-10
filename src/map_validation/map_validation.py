@@ -33,6 +33,8 @@ def _create_scores_plot(df_scores: pd.DataFrame):
         fig, axs = plt.subplots(ncols=NUM_SCORES, figsize=(NUM_SCORES * 4, 4))
 
         for i, score in enumerate(SCORES):
+            print(df.groupby("model")["Squared Rooted Branch Score"].mean())
+
             sns.lineplot(
                 x="sample_size", hue="model", y=score, data=df, ax=axs[i], errorbar=None
             )
@@ -40,6 +42,9 @@ def _create_scores_plot(df_scores: pd.DataFrame):
             axs[i].set_xlabel("Sample Size")
             axs[i].set_xticks(
                 axs[i].get_xticks(), axs[i].get_xticklabels(), rotation=30, ha="right"
+            )
+            axs[i].set_ylim(
+                0, 0.02
             )
 
         fig.suptitle(f"Scores for Different MAP Estimators ({dataset}) ↓")

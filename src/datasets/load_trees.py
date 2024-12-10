@@ -43,8 +43,6 @@ def load_trees(
     if max_trees and max_trees < len(trees):
         trees = sample(trees, max_trees)
 
-    print(len(trees))
-
     return trees
 
 

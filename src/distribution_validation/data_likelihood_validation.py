@@ -45,9 +45,8 @@ def generate_data_likelihood_plots():
             np.mean(likelihoods.log_posterior == -np.inf)
         )
         dict_likelihoods["bic"].append(
-            valid_likelihoods.num_parameters.mean() * np.log(len(valid_likelihoods)) - np.sum(
-                valid_likelihoods.log_posterior
-            )
+            valid_likelihoods.num_parameters.mean() * np.log(len(valid_likelihoods))
+            - np.sum(valid_likelihoods.log_posterior)
         )
 
     df_likelihoods = pd.DataFrame(dict_likelihoods)
@@ -94,7 +93,7 @@ def generate_data_likelihood_plots():
 
         plt.savefig(PLOTS_DIR / f"{dataset_name}_full-bic.png", dpi=300)
         plt.close()
-        
+
         # plot data likelihoods for different sample sizes
 
         sns.lineplot(
@@ -103,10 +102,9 @@ def generate_data_likelihood_plots():
             y="data_likelihood",
             hue="model_name",
             estimator="median",
-            errorbar=None,
         )
 
-        plt.title(f"Data Likelihood ({dataset_name})")
+        plt.title(f"Data Likelihood ({dataset_name}) ↑")
         plt.xlabel("Sample Size")
         plt.ylabel("Data Likelihood")
 
@@ -123,7 +121,6 @@ def generate_data_likelihood_plots():
             x="sample_size",
             y="zero_likelihood_fraction",
             hue="model_name",
-            errorbar=None,
         )
 
         plt.title(f"Fraction of Trees with Zero Likelihood ({dataset_name})")
@@ -148,7 +145,7 @@ def generate_data_likelihood_plots():
         grid.map_dataframe(sns.countplot, x="model_name")
 
         grid.figure.subplots_adjust(top=0.9)
-        grid.figure.suptitle(f"Data Likelihood Wins ({dataset_name})")
+        grid.figure.suptitle(f"Data Likelihood Wins ({dataset_name}) ↑")
 
         grid.set_xlabels("Model")
         grid.set_ylabels("Number of Runs")
@@ -171,7 +168,7 @@ def generate_data_likelihood_plots():
         grid.map_dataframe(sns.countplot, x="model_name")
 
         grid.figure.subplots_adjust(top=0.9)
-        grid.figure.suptitle(f"BIC Wins ({dataset_name})")
+        grid.figure.suptitle(f"BIC Wins ({dataset_name}) ↑")
 
         grid.set_xlabels("Model")
         grid.set_ylabels("Number of Runs")
@@ -183,5 +180,61 @@ def generate_data_likelihood_plots():
         plt.close()
 
 
+def generate_tree_likelihood_plots():
+    dict_tree_likelihoods = {
+        "dataset_name": [],
+        "run": [],
+        "state": [],
+        "model_name": [],
+        "tree_likelihood": [],
+    }
+
+    for posterior_file in list(POSTERIOR_DIR.glob("*.log"))[:50]:
+        file_name_wo_ext = posterior_file.name.removesuffix(".log")
+        dataset_name, run, sample_size, _, model_name = file_name_wo_ext.split("_")
+
+        if int(sample_size) <= 1000:
+            # this is not the full dataset
+            continue
+
+        likelihoods = pd.read_csv(posterior_file)
+        valid_likelihoods = likelihoods[likelihoods.log_posterior != -np.inf]
+
+        for _, row in valid_likelihoods.sample(100).iterrows():
+            dict_tree_likelihoods["dataset_name"].append(dataset_name)
+            dict_tree_likelihoods["run"].append(run)
+            dict_tree_likelihoods["state"].append(int(row.state.replace("STATE_", "")))
+            dict_tree_likelihoods["model_name"].append(model_name)
+            dict_tree_likelihoods["tree_likelihood"].append(row.log_posterior)
+
+    df_tree_likelihoods = pd.DataFrame(dict_tree_likelihoods)
+
+    for dataset_name, df_likelihoods_per_dataset in df_tree_likelihoods.groupby(
+        "dataset_name"
+    ):
+        df_likelihoods_per_dataset = df_likelihoods_per_dataset.sort_values("state")
+
+        # plot tree likelihoods over the runs
+
+        sns.regplot(
+            df_likelihoods_per_dataset,
+            x="state",
+            y="tree_likelihood",
+            scatter=False,
+            n_boot=20,
+            order=1
+        )
+
+        plt.title(f"Tree Likelihoods over MCMC Runs ({dataset_name}) ↑")
+        plt.xlabel("Steps")
+        plt.ylabel("Tree likelihood (linreg)")
+
+        plt.tight_layout()
+
+        plt.savefig(PLOTS_DIR / f"{dataset_name}_tree_likelihoods.png", dpi=300)
+        plt.close()
+
+
 if __name__ == "__main__":
     generate_data_likelihood_plots()
+    generate_tree_likelihood_plots()
