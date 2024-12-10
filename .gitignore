@@ -3,3 +3,4 @@
 data/**
 data_old/**
 plots/**
+comet_api_key.yaml

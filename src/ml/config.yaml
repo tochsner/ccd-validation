@@ -1,0 +1,32 @@
+run_name: debug_setup
+
+data_set:
+  name: tree_datasets
+  directory: data/mcmc_runs
+  glob: "yule-10*.trees"
+  max_files: 1
+
+preprocessing: []
+
+training:
+    comet_project_name: debug_setup
+
+    splitting_config:
+      train_fraction: 0.6
+      test_fraction: 0.2
+
+    dataloader_config:
+      batch_size: 256
+      shuffle: true
+    
+    optimizer_config:
+      name: adam
+    
+    loss_config:
+      name: mse
+
+    model_config:
+      name: prediction_cnn
+
+    trainer_config:
+      max_epochs: 50

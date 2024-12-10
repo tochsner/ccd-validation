@@ -39,3 +39,6 @@ validation:
 	make posterior-ratio-validation
 	make map-validation
 	make likelihood-validation
+
+train:
+	python src/ml/run.py

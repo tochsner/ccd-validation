@@ -1,0 +1,7 @@
+2024-12-11 11:28:47.214 | INFO     | __main__:<module>:36 - Start run debug_setup_2024_12_11_11_28_47.
+2024-12-11 11:28:47.214 | INFO     | __main__:<module>:40 - Loading data.
+2024-12-11 11:28:54.771 | INFO     | __main__:<module>:43 - Loaded 1 data sets.
+2024-12-11 11:28:54.771 | INFO     | __main__:<module>:47 - Start preprocessing.
+2024-12-11 11:28:54.771 | INFO     | __main__:<module>:56 - Perform preprocessing.
+2024-12-11 11:28:54.779 | INFO     | __main__:<module>:62 - Start training.
+2024-12-11 11:28:54.779 | INFO     | __main__:<module>:65 - Start training on dataset 0.
