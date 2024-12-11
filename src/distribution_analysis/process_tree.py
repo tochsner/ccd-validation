@@ -1,3 +1,4 @@
+from typing import Iterable
 from Bio.Phylo.BaseTree import Tree as BioTree, Clade as BioClade
 import pandas as pd
 from src.distribution_analysis.clade import (
@@ -83,7 +84,7 @@ def _process_tree(
 
 
 def get_observed_nodes(
-    trees: list[BioTree], taxa_names: list[str]
+    trees: Iterable[BioTree], taxa_names: list[str]
 ) -> tuple[list[ObservedNode], list[ObservedCladeSplit]]:
     """Collects all observed nodes and clade splits in the given trees.
     Note that the returned lists contain one element per occurrence,
@@ -91,7 +92,7 @@ def get_observed_nodes(
     observed_nodes: list[ObservedNode] = []
     observed_clade_splits: list[ObservedCladeSplit] = []
 
-    for i, tree in enumerate(list(trees)):
+    for i, tree in enumerate(trees):
         _process_tree(
             observed_nodes,
             observed_clade_splits,

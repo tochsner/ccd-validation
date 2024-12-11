@@ -47,15 +47,12 @@ logger.info("Loaded {} data sets.", len(data_sets))
 logger.info("Start preprocessing.")
 
 for preprocessing_step in config["preprocessing"]:
-    logger.info("Register {} preprocessing.", preprocessing_step["name"])
-    transform = preprocessing_factory(**preprocessing_step)
-    
-    for data_set in data_sets:
-        data_set.initial_transform.append(transform)
+    logger.info("Perform {} preprocessing.", preprocessing_step["name"])
 
-logger.info("Perform preprocessing.")
-for data_set in data_sets:
-    data_set.apply_initial_transform()
+    transform = preprocessing_factory(**preprocessing_step)
+    data_sets = [transform(data_set) for data_set in data_sets]
+
+print(data_sets[0][0])
 
 # train models
 

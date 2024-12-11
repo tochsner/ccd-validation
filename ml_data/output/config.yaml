@@ -6,7 +6,9 @@ data_set:
   glob: "yule-10*.trees"
   max_files: 1
 
-preprocessing: []
+preprocessing:
+  - name: add_taxa_names
+  - name: add_all_clades
 
 training:
     comet_project_name: debug_setup

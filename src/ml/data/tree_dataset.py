@@ -1,10 +1,10 @@
 from pathlib import Path
 from typing import Optional
-from src.ml.data.transformed_dataset import TransformedDataset
+from torch.utils.data import Dataset
 from src.datasets.load_trees import load_trees_from_file
 
 
-class TreeDataset(TransformedDataset):
+class TreeDataset(Dataset):
     """A dataset of trees."""
 
     def __init__(self, trees_file: Path):
@@ -16,14 +16,11 @@ class TreeDataset(TransformedDataset):
         return len(self.trees)
 
     def __getitem__(self, index):
-        raw_item = {"tree": self.trees[index]}
-        transformed_item = self._apply_transform(raw_item, self.transform)
-        return transformed_item
-
-    def apply_initial_transform(self):
-        self.trees = [
-            self._apply_transform(tree, self.initial_transform) for tree in self.trees
-        ]
+        return {
+            "tree": self.trees[index],
+            "trees_file": self.trees_file,
+            "tree_index": index,
+        }
 
 
 def tree_datasets(

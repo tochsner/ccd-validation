@@ -1,4 +1,6 @@
+
 from src.ml.utils.set_seed import set_seed
+from random import shuffle
 
 from torch.utils.data import Dataset, Subset
 
@@ -16,14 +18,14 @@ def create_data_splits(
     num_train_samples = int(train_fraction * num_samples)
     num_test_samples = int(test_fraction * num_samples)
 
-    all_indices = list(range(num_samples))  # type: ignore
-    shuffled_indices = list(range(num_samples))
+    all_indices = list(range(num_samples))
+    shuffle(all_indices)
 
-    train_indices = shuffled_indices[:num_train_samples]
-    test_indices = shuffled_indices[
+    train_indices = all_indices[:num_train_samples]
+    test_indices = all_indices[
         num_train_samples : num_train_samples + num_test_samples
     ]
-    val_indices = shuffled_indices[num_train_samples + num_test_samples :]
+    val_indices = all_indices[num_train_samples + num_test_samples :]
 
     return (
         Subset(dataset, train_indices),

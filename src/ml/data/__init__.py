@@ -1,10 +1,10 @@
 from typing import Sequence
 
-from src.ml.data.transformed_dataset import TransformedDataset
 from src.ml.data.tree_dataset import tree_datasets
+from torch.utils.data import Dataset
 
 
-def data_sets_factory(name: str, **kwargs) -> Sequence[TransformedDataset]:
+def data_sets_factory(name: str, **kwargs) -> Sequence[Dataset]:
     """Factory function for data sets."""
     match name:
         case "tree_datasets":
