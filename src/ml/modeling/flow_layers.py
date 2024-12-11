@@ -3,22 +3,22 @@ import torch.nn as nn
 
 
 class FlowLayer(ABC, nn.Module):
-    def forward(self, z):
+    def forward(self, z, **kwargs):
         raise NotImplementedError
 
-    def inverse(self, z):
+    def inverse(self, z, **kwargs):
         raise NotImplementedError
 
-    def log_det_jacobian(self, z):
+    def log_det_jacobian(self, z, **kwargs):
         raise NotImplementedError
 
 
 class ConditionalFlowLayer(ABC, nn.Module):
-    def forward(self, z, y):
+    def forward(self, z, context, **kwargs):
         raise NotImplementedError
 
-    def inverse(self, z, y):
+    def inverse(self, z, context, **kwargs):
         raise NotImplementedError
 
-    def log_det_jacobian(self, z, y):
+    def log_det_jacobian(self, z, context, **kwargs):
         raise NotImplementedError

@@ -4,12 +4,11 @@ import lightning.pytorch as pl
 import torch
 import yaml
 from lightning.pytorch.callbacks import ModelCheckpoint
-from lightning.pytorch.loggers import CometLogger
+import mlflow
 from torch.utils.data import DataLoader, Dataset
 
 from src.ml.data.splitting import create_data_splits
 from src.ml.modeling import (
-    flow_layer_factory,
     loss_factory,
     model_factory,
     optimizer_factory,
@@ -19,24 +18,20 @@ from src.ml.utils.set_seed import set_seed
 torch.set_default_device(torch.device("cpu"))
 
 
-def _get_comet_api_key():
-    with open("comet_api_key.yaml", "r") as f:
-        return yaml.safe_load(f)["key"]
-
-
 def train_neural_network(
     dataset: Dataset,
     comet_project_name: str,
     splitting_config: dict[str, Any],
     dataloader_config: dict[str, Any],
     optimizer_config: dict[str, Any],
-    flow_layers: list[dict[str, Any]],
     loss_config: dict[str, Any],
     model_config: dict[str, Any],
     trainer_config: dict[str, Any],
 ):
     """Trains a neural network."""
     set_seed()
+
+    mlflow.pytorch.autolog()
 
     torch.set_default_dtype(torch.float32)
 
@@ -48,31 +43,17 @@ def train_neural_network(
     test_loader = DataLoader(test_dataset)
     val_loader = DataLoader(val_dataset)
 
-    flows = []
-    for flow_config in flow_layers:
-        flow = flow_layer_factory(
-            dim=train_dataset[0]["branch_lengths"].shape[0], **flow_config
-        )
-        flows.append(flow)
-
     loss = loss_factory(**loss_config)
     optimizer = optimizer_factory(**optimizer_config)
-    model = model_factory(loss=loss, optimizer=optimizer, flows=flows, **model_config)
-
-    logger = CometLogger(api_key=_get_comet_api_key(), project_name=comet_project_name)
-    logger.log_hyperparams(
-        {
-            **splitting_config,
-            **dataloader_config,
-            **optimizer_config,
-            **loss_config,
-            **model_config,
-            **trainer_config,
-        }
+    model = model_factory(
+        loss=loss,
+        optimizer=optimizer,
+        dim=len(train_dataset[0]["branch_lengths"]),
+        context_dim=len(train_dataset[0]["clades_one_hot"]),
+        **model_config,
     )
 
     trainer = pl.Trainer(
-        logger=logger,
         accelerator="cpu",
         callbacks=[
             ModelCheckpoint(

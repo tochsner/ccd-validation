@@ -28,11 +28,11 @@ training:
     loss_config:
       name: mse
 
-    flow_layers:
-      - name: planar_flow_layer
-
     model_config:
       name: conditional_tree_flow
+      num_blocks: 2
+      mask_fraction: 0.5
+      context_embedding_size: 8
 
     trainer_config:
       max_epochs: 10

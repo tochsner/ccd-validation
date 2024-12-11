@@ -27,18 +27,26 @@ class NormalizingFlow(ABC, pl.LightningModule):
         raise NotImplementedError
 
     def forward(self, batch):
-        encoded = self.encode(batch)
+        transformed = self.encode(batch)
 
         for flow in self.flows:
-            encoded = flow.forward(**encoded)
+            transformed.update(flow.forward(**transformed))
 
-        return encoded
+        return transformed
+    
+    def inverse(self, batch):
+        transformed = self.encode(batch)
+
+        for flow in self.flows:
+            transformed.update(flow.inverse(**transformed))
+
+        return transformed
 
     def get_loss(self, batch):
-        encoded = self.forward(batch)
+        transformed = self.forward(batch)
         
-        z = encoded["z"]
-        log_dj = encoded["log_dj"]
+        z = transformed["z"]
+        log_dj = transformed["log_dj"]
 
         log_pz = self.prior.log_prob(z).sum()
         log_px = log_dj + log_pz
