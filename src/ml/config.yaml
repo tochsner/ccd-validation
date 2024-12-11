@@ -28,10 +28,11 @@ training:
     loss_config:
       name: mse
 
-    flow_configs: []
+    flow_layers:
+      - name: planar_flow_layer
 
     model_config:
       name: conditional_tree_flow
 
     trainer_config:
-      max_epochs: 50
+      max_epochs: 10

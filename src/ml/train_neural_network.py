@@ -8,7 +8,12 @@ from lightning.pytorch.loggers import CometLogger
 from torch.utils.data import DataLoader, Dataset
 
 from src.ml.data.splitting import create_data_splits
-from src.ml.modeling import flow_factory, loss_factory, model_factory, optimizer_factory
+from src.ml.modeling import (
+    flow_layer_factory,
+    loss_factory,
+    model_factory,
+    optimizer_factory,
+)
 from src.ml.utils.set_seed import set_seed
 
 torch.set_default_device(torch.device("cpu"))
@@ -25,7 +30,7 @@ def train_neural_network(
     splitting_config: dict[str, Any],
     dataloader_config: dict[str, Any],
     optimizer_config: dict[str, Any],
-    flow_configs: list[dict[str, Any]],
+    flow_layers: list[dict[str, Any]],
     loss_config: dict[str, Any],
     model_config: dict[str, Any],
     trainer_config: dict[str, Any],
@@ -40,12 +45,14 @@ def train_neural_network(
     )
 
     train_loader = DataLoader(train_dataset, **dataloader_config)
-    test_loader = DataLoader(test_dataset, batch_size=2)
-    val_loader = DataLoader(val_dataset, batch_size=2)
+    test_loader = DataLoader(test_dataset)
+    val_loader = DataLoader(val_dataset)
 
     flows = []
-    for flow_config in flow_configs:
-        flow = flow_factory(**flow_config)
+    for flow_config in flow_layers:
+        flow = flow_layer_factory(
+            dim=train_dataset[0]["branch_lengths"].shape[0], **flow_config
+        )
         flows.append(flow)
 
     loss = loss_factory(**loss_config)

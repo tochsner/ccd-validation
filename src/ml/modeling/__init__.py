@@ -4,6 +4,7 @@ from typing import Callable, Iterator
 import lightning.pytorch as pl
 from torch import Tensor, nn, optim
 
+from src.ml.modeling.planar_flow_layer import PlanarFlowLayer
 from src.ml.modeling.conditional_tree_flow import ConditionalTreeFlow
 
 
@@ -22,12 +23,14 @@ def model_factory(
             raise ValueError(f"Unknown model {name}.")
 
 
-def flow_factory(
+def flow_layer_factory(
     name: str,
     **kwargs,
 ) -> nn.Module:
     """Factory function for flow modules."""
     match name:
+        case "planar_flow_layer":
+            return PlanarFlowLayer(**kwargs)
         case _:
             raise ValueError(f"Unknown flow {name}.")
 

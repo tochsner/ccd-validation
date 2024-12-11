@@ -21,6 +21,8 @@ class NormalizingFlow(ABC, pl.LightningModule):
         self.flows = nn.ModuleList(flows)
         self.prior = torch.distributions.normal.Normal(loc=0.0, scale=1.0)
 
+        self.scale = nn.Parameter(torch.Tensor(1, 1))
+
     def encode(self, batch) -> dict:
         raise NotImplementedError
 
@@ -33,7 +35,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
         return encoded
 
     def get_loss(self, batch):
-        encoded = self.encode(batch)
+        encoded = self.forward(batch)
         
         z = encoded["z"]
         log_dj = encoded["log_dj"]

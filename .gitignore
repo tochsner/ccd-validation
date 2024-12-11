@@ -5,3 +5,4 @@ data_old/**
 plots/**
 ml_data/**
 comet_api_key.yaml
+**/__pycache__/**

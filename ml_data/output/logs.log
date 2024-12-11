@@ -1,9 +1,9 @@
-2024-12-11 23:31:12.119 | INFO     | __main__:run:39 - Start run debug_setup_2024_12_11_23_31_12.
-2024-12-11 23:31:12.119 | INFO     | __main__:run:43 - Loading data.
-2024-12-11 23:31:19.876 | INFO     | __main__:run:46 - Loaded 1 data sets.
-2024-12-11 23:31:19.876 | INFO     | __main__:run:50 - Start preprocessing.
-2024-12-11 23:31:19.876 | INFO     | __main__:run:53 - Perform add_taxa_names preprocessing.
-2024-12-11 23:31:20.756 | INFO     | __main__:run:53 - Perform add_clade_information preprocessing.
-2024-12-11 23:31:22.061 | INFO     | __main__:run:53 - Perform remove_tree preprocessing.
-2024-12-11 23:31:22.069 | INFO     | __main__:run:60 - Start training.
-2024-12-11 23:31:22.069 | INFO     | __main__:run:63 - Start training on dataset 0.
+2024-12-11 23:57:14.274 | INFO     | __main__:run:39 - Start run debug_setup_2024_12_11_23_57_14.
+2024-12-11 23:57:14.274 | INFO     | __main__:run:43 - Loading data.
+2024-12-11 23:57:22.632 | INFO     | __main__:run:46 - Loaded 1 data sets.
+2024-12-11 23:57:22.633 | INFO     | __main__:run:50 - Start preprocessing.
+2024-12-11 23:57:22.633 | INFO     | __main__:run:53 - Perform add_taxa_names preprocessing.
+2024-12-11 23:57:23.604 | INFO     | __main__:run:53 - Perform add_clade_information preprocessing.
+2024-12-11 23:57:24.978 | INFO     | __main__:run:53 - Perform remove_tree preprocessing.
+2024-12-11 23:57:24.987 | INFO     | __main__:run:60 - Start training.
+2024-12-11 23:57:24.988 | INFO     | __main__:run:63 - Start training on dataset 0.
