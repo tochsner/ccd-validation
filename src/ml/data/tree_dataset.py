@@ -18,7 +18,7 @@ class TreeDataset(Dataset):
     def __getitem__(self, index):
         return {
             "tree": self.trees[index],
-            "trees_file": self.trees_file,
+            "trees_file": str(self.trees_file),
             "tree_index": index,
         }
 

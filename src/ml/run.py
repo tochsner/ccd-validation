@@ -10,58 +10,63 @@ from src.ml.data import data_sets_factory
 from src.ml.preprocessing import preprocessing_factory
 from src.ml.utils.set_seed import set_seed
 
-set_seed()
 
 OUTPUT_PATH = Path("ml_data/output")
 HISTORY_PATH = Path("ml_data/output_history")
 CONFIG_FILE = Path("src/ml/config.yaml")
 
-# load config file
 
-logger.info("Loading config file.")
+def run():
+    set_seed()
 
-with open(CONFIG_FILE, "r") as f:
-    config = yaml.safe_load(f)
+    # load config file
 
-run_name = f"{config['run_name']}_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+    logger.info("Loading config file.")
 
-# prepare output directory
+    with open(CONFIG_FILE, "r") as f:
+        config = yaml.safe_load(f)
 
-rmtree(OUTPUT_PATH, ignore_errors=True)
-OUTPUT_PATH.mkdir(exist_ok=True)
+    run_name = f"{config['run_name']}_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}"
 
-copy(CONFIG_FILE, OUTPUT_PATH)
-logger.add(OUTPUT_PATH / "logs.log")
+    # prepare output directory
 
-logger.info("Start run {}.", run_name)
+    rmtree(OUTPUT_PATH, ignore_errors=True)
+    OUTPUT_PATH.mkdir(exist_ok=True)
 
-# load data
+    copy(CONFIG_FILE, OUTPUT_PATH)
+    logger.add(OUTPUT_PATH / "logs.log")
 
-logger.info("Loading data.")
+    logger.info("Start run {}.", run_name)
 
-data_sets = data_sets_factory(**config["data_set"])
-logger.info("Loaded {} data sets.", len(data_sets))
+    # load data
 
-# preprocess data
+    logger.info("Loading data.")
 
-logger.info("Start preprocessing.")
+    data_sets = data_sets_factory(**config["data_set"])
+    logger.info("Loaded {} data sets.", len(data_sets))
 
-for preprocessing_step in config["preprocessing"]:
-    logger.info("Perform {} preprocessing.", preprocessing_step["name"])
+    # preprocess data
 
-    transform = preprocessing_factory(**preprocessing_step)
-    data_sets = [transform(data_set) for data_set in data_sets]
+    logger.info("Start preprocessing.")
 
-print(data_sets[0][0])
+    for preprocessing_step in config["preprocessing"]:
+        logger.info("Perform {} preprocessing.", preprocessing_step["name"])
 
-# train models
+        transform = preprocessing_factory(**preprocessing_step)
+        data_sets = [transform(data_set) for data_set in data_sets]
 
-logger.info("Start training.")
+    # train models
 
-for i, data_set in enumerate(data_sets):
-    logger.info("Start training on dataset {}.", i)
-    train_neural_network(dataset=data_set, **config["training"])
+    logger.info("Start training.")
 
-# copy to history
+    for i, data_set in enumerate(data_sets):
+        logger.info("Start training on dataset {}.", i)
+        train_neural_network(dataset=data_set, **config["training"])
 
-copytree(OUTPUT_PATH, HISTORY_PATH / run_name)
+    # copy to history
+
+    copytree(OUTPUT_PATH, HISTORY_PATH / run_name)
+
+
+if __name__ == "__main__":
+    run()

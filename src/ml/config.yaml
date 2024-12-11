@@ -9,6 +9,7 @@ data_set:
 preprocessing:
   - name: add_taxa_names
   - name: add_clade_information
+  - name: remove_tree
 
 training:
     comet_project_name: debug_setup
@@ -27,8 +28,10 @@ training:
     loss_config:
       name: mse
 
+    flow_configs: []
+
     model_config:
-      name: prediction_cnn
+      name: conditional_tree_flow
 
     trainer_config:
       max_epochs: 50
