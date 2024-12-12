@@ -19,28 +19,22 @@ class ContextEmmbedding(nn.Module):
 
 
 class ScalingModule(nn.Module):
-    def __init__(self, dim: int, context_dim: int, embedding_dim: int):
+    def __init__(self, dim: int, embedding_dim: int):
         super().__init__()
-        self.linear_1 = nn.Linear(dim + context_dim, embedding_dim)
-        self.linear_2 = nn.Linear(embedding_dim, dim)
+        self.linear = nn.Linear(embedding_dim, dim)
 
-    def forward(self, z, y):
-        z = self.linear_1(torch.cat([z, y], dim=1))
-        z = F.relu(z)
-        z = self.linear_2(z)
+    def forward(self, z):
+        z = self.linear(z)
         return z
 
 
 class TranslationModule(nn.Module):
-    def __init__(self, dim: int, context_dim: int, embedding_dim: int):
+    def __init__(self, dim: int, embedding_dim: int):
         super().__init__()
-        self.linear_1 = nn.Linear(dim + context_dim, embedding_dim)
-        self.linear_2 = nn.Linear(embedding_dim, dim)
+        self.linear = nn.Linear(dim, embedding_dim)
 
-    def forward(self, z, y):
-        z = self.linear_1(torch.cat([z, y], dim=1))
-        z = F.relu(z)
-        z = self.linear_2(z)
+    def forward(self, z):
+        z = self.linear(z)
         return z
 
 
@@ -49,8 +43,6 @@ class ConditionalTreeFlow(NormalizingFlow):
     def __init__(
         self,
         dim: int,
-        context_dim: int,
-        context_embedding_size: int,
         mask_fraction: float,
         num_blocks: int,
         optimizer: Callable[[Iterator[nn.Parameter]], optim.Optimizer],
@@ -61,11 +53,8 @@ class ConditionalTreeFlow(NormalizingFlow):
             flow_layers.append(
                 MaskedAffineFlowLayer(
                     mask=(torch.FloatTensor(dim).uniform_() < mask_fraction).float(),
-                    context_embedding=ContextEmmbedding(
-                        context_dim, context_embedding_size
-                    ),
-                    translate=TranslationModule(dim, context_embedding_size, dim),
-                    scale=ScalingModule(dim, context_embedding_size, dim),
+                    translate=TranslationModule(dim, dim),
+                    scale=ScalingModule(dim, dim),
                 )
             )
 

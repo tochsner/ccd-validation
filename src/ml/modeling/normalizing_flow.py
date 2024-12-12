@@ -19,8 +19,6 @@ class NormalizingFlow(ABC, pl.LightningModule):
         self.flows = nn.ModuleList(flows)
         self.prior = torch.distributions.normal.Normal(loc=0.0, scale=1.0)
 
-        self.scale = nn.Parameter(torch.Tensor(1, 1))
-
         self.save_hyperparameters()
 
     def encode(self, batch) -> dict:
@@ -57,7 +55,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
         log_pz = self.prior.log_prob(z).sum()
         log_px = log_dj + log_pz
 
-        return -log_pz.mean()
+        return -log_px.mean()
     
     def training_step(self, batch, batch_idx):
         loss = self.get_loss(batch)

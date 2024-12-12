@@ -21,9 +21,8 @@ training:
     
     model_config:
       name: conditional_tree_flow
-      num_blocks: 2
+      num_blocks: 1
       mask_fraction: 0.5
-      context_embedding_size: 16
 
     trainer_config:
       max_epochs: 20

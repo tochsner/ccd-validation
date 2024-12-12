@@ -44,7 +44,6 @@ def train_neural_network(
     model = model_factory(
         optimizer=optimizer,
         dim=len(train_dataset[0]["branch_lengths"]),
-        context_dim=len(train_dataset[0]["clades_one_hot"]),
         **model_config,
     )
 

@@ -14,7 +14,7 @@ class DummyDataset(Dataset):
 
     def __getitem__(self, index):
         return {
-            "branch_lengths": 0.05 + torch.randn(10) * 0.001, 
+            "branch_lengths": torch.randn(10) * 0.001, 
             "clades_one_hot": torch.randint(0, 2, (20,)).float(),
         }
 
