@@ -21,20 +21,26 @@ class ContextEmmbedding(nn.Module):
 class ScalingModule(nn.Module):
     def __init__(self, dim: int, embedding_dim: int):
         super().__init__()
-        self.linear = nn.Linear(embedding_dim, dim)
+        self.linear_1 = nn.Linear(embedding_dim, dim)
+        self.linear_2 = nn.Linear(dim, dim)
 
     def forward(self, z):
-        z = self.linear(z)
+        z = self.linear_1(z)
+        z = F.relu(z)
+        z = self.linear_2(z)
         return z
 
 
 class TranslationModule(nn.Module):
     def __init__(self, dim: int, embedding_dim: int):
         super().__init__()
-        self.linear = nn.Linear(dim, embedding_dim)
+        self.linear_1 = nn.Linear(embedding_dim, dim)
+        self.linear_2 = nn.Linear(dim, dim)
 
     def forward(self, z):
-        z = self.linear(z)
+        z = self.linear_1(z)
+        z = F.relu(z)
+        z = self.linear_2(z)
         return z
 
 
