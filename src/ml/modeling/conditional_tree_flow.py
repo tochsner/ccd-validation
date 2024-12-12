@@ -23,11 +23,14 @@ class ScalingModule(nn.Module):
         super().__init__()
         self.linear_1 = nn.Linear(embedding_dim, dim)
         self.linear_2 = nn.Linear(dim, dim)
+        self.linear_3 = nn.Linear(dim, dim)
 
     def forward(self, z):
         z = self.linear_1(z)
         z = F.relu(z)
         z = self.linear_2(z)
+        z = F.relu(z)
+        z = self.linear_3(z)
         return z
 
 
@@ -36,11 +39,14 @@ class TranslationModule(nn.Module):
         super().__init__()
         self.linear_1 = nn.Linear(embedding_dim, dim)
         self.linear_2 = nn.Linear(dim, dim)
+        self.linear_3 = nn.Linear(dim, dim)
 
     def forward(self, z):
         z = self.linear_1(z)
         z = F.relu(z)
         z = self.linear_2(z)
+        z = F.relu(z)
+        z = self.linear_3(z)
         return z
 
 
