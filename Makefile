@@ -41,11 +41,7 @@ validation:
 	make likelihood-validation
 
 train:
-	make setup-ml-flow
 	python src/ml/run.py
 
-setup-ml-flow:
-	export MLFLOW_TRACKING_URI=sqlite://data/mlflow/mlruns.db
-
 ml-flow-ui:
-	mlflow ui --port 8080 --backend-store-uri sqlite://data/mlflow/mlruns.db
+	mlflow ui

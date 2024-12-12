@@ -2,14 +2,12 @@ from typing import Any
 
 import lightning.pytorch as pl
 import torch
-import yaml
 from lightning.pytorch.callbacks import ModelCheckpoint
 import mlflow
 from torch.utils.data import DataLoader, Dataset
 
 from src.ml.data.splitting import create_data_splits
 from src.ml.modeling import (
-    loss_factory,
     model_factory,
     optimizer_factory,
 )
@@ -24,7 +22,6 @@ def train_neural_network(
     splitting_config: dict[str, Any],
     dataloader_config: dict[str, Any],
     optimizer_config: dict[str, Any],
-    loss_config: dict[str, Any],
     model_config: dict[str, Any],
     trainer_config: dict[str, Any],
 ):
@@ -43,10 +40,8 @@ def train_neural_network(
     test_loader = DataLoader(test_dataset)
     val_loader = DataLoader(val_dataset)
 
-    loss = loss_factory(**loss_config)
     optimizer = optimizer_factory(**optimizer_config)
     model = model_factory(
-        loss=loss,
         optimizer=optimizer,
         dim=len(train_dataset[0]["branch_lengths"]),
         context_dim=len(train_dataset[0]["clades_one_hot"]),
@@ -58,7 +53,7 @@ def train_neural_network(
         callbacks=[
             ModelCheckpoint(
                 monitor="val_loss",
-                dirpath=f"data/models/{comet_project_name}",
+                dirpath=f"ml_data/models/{comet_project_name}",
                 filename="{epoch:02d}-{val_loss:.2f}",
                 save_top_k=1,
             ),

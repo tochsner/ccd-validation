@@ -9,13 +9,11 @@ from torch import Tensor, nn, optim
 class NormalizingFlow(ABC, pl.LightningModule):
     def __init__(
         self,
-        loss: Callable[[torch.Tensor, Tensor], Tensor],
         optimizer: Callable[[Iterator[nn.Parameter]], optim.Optimizer],
         flows: list,
     ):
         super().__init__()
 
-        self.loss = loss
         self.optimizer = optimizer
 
         self.flows = nn.ModuleList(flows)
@@ -23,7 +21,12 @@ class NormalizingFlow(ABC, pl.LightningModule):
 
         self.scale = nn.Parameter(torch.Tensor(1, 1))
 
+        self.save_hyperparameters()
+
     def encode(self, batch) -> dict:
+        raise NotImplementedError
+    
+    def decode(self, batch) -> dict:
         raise NotImplementedError
 
     def forward(self, batch):
@@ -35,12 +38,12 @@ class NormalizingFlow(ABC, pl.LightningModule):
         return transformed
     
     def inverse(self, batch):
-        transformed = self.encode(batch)
+        transformed = batch
 
-        for flow in self.flows:
+        for flow in self.flows[::-1]:
             transformed.update(flow.inverse(**transformed))
 
-        return transformed
+        return self.decode(transformed)
 
     def get_loss(self, batch):
         transformed = self.forward(batch)

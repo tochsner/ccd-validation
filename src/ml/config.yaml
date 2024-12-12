@@ -15,8 +15,8 @@ training:
     comet_project_name: debug_setup
 
     splitting_config:
-      train_fraction: 0.6
-      test_fraction: 0.2
+      train_fraction: 0.7
+      test_fraction: 0.15
 
     dataloader_config:
       batch_size: 256
@@ -25,14 +25,11 @@ training:
     optimizer_config:
       name: adam
     
-    loss_config:
-      name: mse
-
     model_config:
       name: conditional_tree_flow
-      num_blocks: 2
+      num_blocks: 10
       mask_fraction: 0.5
       context_embedding_size: 8
 
     trainer_config:
-      max_epochs: 10
+      max_epochs: 100

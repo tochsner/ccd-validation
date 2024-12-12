@@ -18,29 +18,30 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
     def forward(self, z, context, **kwargs):
         z_masked = self.mask * z
 
-        context = self.context_embedding(context)
+        embedded_context = self.context_embedding(context)
 
-        scale = self.scale(z_masked, context)
-        translation = self.translate(z_masked, context)
+        scale = self.scale(z_masked, embedded_context)
+        translation = self.translate(z_masked, embedded_context)
 
         z = z_masked + (1 - self.mask) * (z * torch.exp(scale) + translation)
         log_det = torch.sum((1 - self.mask) * scale, dim=list(range(1, self.mask.dim())))
 
         return {
             "z": z,
+            "context": context,
             "log_dj": log_det,
         }
 
     def inverse(self, z, context, **kwargs):
         z_masked = self.mask * z
 
-        context = self.context_embedding(context)
+        embedded_context = self.context_embedding(context)
 
-        scale = self.scale(z_masked, context)
+        scale = self.scale(z_masked, embedded_context)
         nan = torch.tensor(np.nan, dtype=z.dtype, device=z.device)
         scale = torch.where(torch.isfinite(scale), scale, nan)
 
-        trans = self.translate(z_masked, context)
+        trans = self.translate(z_masked, embedded_context)
         trans = torch.where(torch.isfinite(trans), trans, nan)
 
         z = z_masked + (1 - self.mask) * (z - trans) * torch.exp(-scale)
@@ -48,5 +49,6 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
 
         return {
             "z": z,
+            "context": context,
             "log_dj": log_det,
         }

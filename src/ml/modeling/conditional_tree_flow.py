@@ -47,7 +47,6 @@ class ConditionalTreeFlow(NormalizingFlow):
         context_embedding_size: int,
         mask_fraction: float,
         num_blocks: int,
-        loss: Callable[[torch.Tensor, torch.Tensor], Tensor],
         optimizer: Callable[[Iterator[nn.Parameter]], optim.Optimizer],
     ):
         flow_layers = [
@@ -63,7 +62,6 @@ class ConditionalTreeFlow(NormalizingFlow):
         ]
 
         super().__init__(
-            loss,
             optimizer,
             flow_layers,
         )
@@ -73,4 +71,11 @@ class ConditionalTreeFlow(NormalizingFlow):
             "z": batch["branch_lengths"],
             "context": batch["clades_one_hot"],
             "log_dj": torch.zeros(len(batch["branch_lengths"]), device=self.device),
+        }
+    
+    def decode(self, batch) -> dict:
+        return {
+            "branch_lengths": batch["z"],
+            "clades_one_hot": batch["context"],
+            "log_dj": batch["log_dj"],
         }
