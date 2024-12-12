@@ -1,9 +1,15 @@
 run_name: debug_simple_conditional_flow
 
 data_set:
-  name: dummy_datasets
+  name: tree_datasets
+  directory: data/mcmc_runs
+  glob: "yule-10*.trees"
+  max_files: 1
 
-preprocessing: []
+preprocessing:
+  - name: add_taxa_names
+  - name: add_clade_information
+  - name: remove_tree
 
 training:
     comet_project_name: debug_simple_conditional_flow
