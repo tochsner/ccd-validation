@@ -7,3 +7,4 @@ ml_data/**
 comet_api_key.yaml
 **/__pycache__/**
 mlruns/**
+lightning_logs/**
