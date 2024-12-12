@@ -18,11 +18,12 @@ training:
 
     optimizer_config:
       name: adam
+      lr: 0.0005
     
     model_config:
       name: conditional_tree_flow
-      num_blocks: 4
+      num_blocks: 16
       mask_fraction: 0.5
 
     trainer_config:
-      max_epochs: 75
+      max_epochs: 100

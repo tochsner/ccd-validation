@@ -1,7 +1,6 @@
 from torch import Tensor
 from torch import nn
 import torch
-import numpy as np
 from src.ml.modeling.layers.flow_layers import ConditionalFlowLayer
 
 
@@ -21,7 +20,7 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         self.register_buffer("mask", mask)
 
     def forward(self, z, **kwargs):
-        z_masked = self.mask * z
+        z_masked = z * self.mask
 
         scale = self.scale(z_masked)
         translation = self.translate(z_masked)
@@ -38,7 +37,7 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         }
 
     def inverse(self, z, **kwargs):
-        z_masked = self.mask * z
+        z_masked = z * self.mask
 
         scale = self.scale(z_masked)
         translation = self.translate(z_masked)
