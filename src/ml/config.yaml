@@ -1,18 +1,12 @@
-run_name: debug_setup
+run_name: debug_simple_conditional_flow
 
 data_set:
-  name: tree_datasets
-  directory: data/mcmc_runs
-  glob: "yule-10*.trees"
-  max_files: 1
+  name: dummy_datasets
 
-preprocessing:
-  - name: add_taxa_names
-  - name: add_clade_information
-  - name: remove_tree
+preprocessing: []
 
 training:
-    comet_project_name: debug_setup
+    comet_project_name: debug_simple_conditional_flow
 
     splitting_config:
       train_fraction: 0.7
@@ -21,15 +15,15 @@ training:
     dataloader_config:
       batch_size: 256
       shuffle: true
-    
+
     optimizer_config:
       name: adam
     
     model_config:
       name: conditional_tree_flow
-      num_blocks: 10
+      num_blocks: 2
       mask_fraction: 0.5
-      context_embedding_size: 8
+      context_embedding_size: 16
 
     trainer_config:
-      max_epochs: 100
+      max_epochs: 20

@@ -2,8 +2,8 @@ from typing import Callable, Iterator
 import torch
 
 import torch.nn.functional as F
-from torch import Tensor, nn, optim
-from src.ml.modeling.affine_coupling_flow_layer import MaskedAffineFlowLayer
+from torch import nn, optim
+from src.ml.modeling.layers.affine_coupling_flow_layer import MaskedAffineFlowLayer
 from src.ml.modeling.normalizing_flow import NormalizingFlow
 
 
@@ -19,22 +19,28 @@ class ContextEmmbedding(nn.Module):
 
 
 class ScalingModule(nn.Module):
-    def __init__(self, dim: int, context_dim: int):
+    def __init__(self, dim: int, context_dim: int, embedding_dim: int):
         super().__init__()
-        self.linear = nn.Linear(dim + context_dim, dim)
+        self.linear_1 = nn.Linear(dim + context_dim, embedding_dim)
+        self.linear_2 = nn.Linear(embedding_dim, dim)
 
     def forward(self, z, y):
-        z = self.linear(torch.cat([z, y], dim=1))
+        z = self.linear_1(torch.cat([z, y], dim=1))
+        z = F.relu(z)
+        z = self.linear_2(z)
         return z
 
 
 class TranslationModule(nn.Module):
-    def __init__(self, dim: int, context_dim: int):
+    def __init__(self, dim: int, context_dim: int, embedding_dim: int):
         super().__init__()
-        self.linear = nn.Linear(dim + context_dim, dim)
+        self.linear_1 = nn.Linear(dim + context_dim, embedding_dim)
+        self.linear_2 = nn.Linear(embedding_dim, dim)
 
     def forward(self, z, y):
-        z = self.linear(torch.cat([z, y], dim=1))
+        z = self.linear_1(torch.cat([z, y], dim=1))
+        z = F.relu(z)
+        z = self.linear_2(z)
         return z
 
 
@@ -49,17 +55,19 @@ class ConditionalTreeFlow(NormalizingFlow):
         num_blocks: int,
         optimizer: Callable[[Iterator[nn.Parameter]], optim.Optimizer],
     ):
-        flow_layers = [
-            MaskedAffineFlowLayer(
-                mask=(torch.FloatTensor(dim).uniform_() > mask_fraction).float(),
-                context_embedding=ContextEmmbedding(
-                    context_dim, context_embedding_size
-                ),
-                translate=TranslationModule(dim, context_embedding_size),
-                scale=ScalingModule(dim, context_embedding_size),
+        flow_layers: list[nn.Module] = []
+
+        for _ in range(num_blocks):
+            flow_layers.append(
+                MaskedAffineFlowLayer(
+                    mask=(torch.FloatTensor(dim).uniform_() < mask_fraction).float(),
+                    context_embedding=ContextEmmbedding(
+                        context_dim, context_embedding_size
+                    ),
+                    translate=TranslationModule(dim, context_embedding_size, dim),
+                    scale=ScalingModule(dim, context_embedding_size, dim),
+                )
             )
-            for _ in range(num_blocks)
-        ]
 
         super().__init__(
             optimizer,
@@ -70,9 +78,9 @@ class ConditionalTreeFlow(NormalizingFlow):
         return {
             "z": batch["branch_lengths"],
             "context": batch["clades_one_hot"],
-            "log_dj": torch.zeros(len(batch["branch_lengths"]), device=self.device),
+            "log_dj": torch.zeros(len(batch["branch_lengths"])),
         }
-    
+
     def decode(self, batch) -> dict:
         return {
             "branch_lengths": batch["z"],

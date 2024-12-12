@@ -3,7 +3,7 @@ from typing import Callable, Iterator
 import torch
 import lightning as pl
 import torch.nn as nn
-from torch import Tensor, nn, optim
+from torch import nn, optim
 
 
 class NormalizingFlow(ABC, pl.LightningModule):
@@ -33,7 +33,9 @@ class NormalizingFlow(ABC, pl.LightningModule):
         transformed = self.encode(batch)
 
         for flow in self.flows:
-            transformed.update(flow.forward(**transformed))
+            result = flow.forward(**transformed)
+            transformed["z"] = result["z"]
+            transformed["log_dj"] += result["log_dj"]
 
         return transformed
     
@@ -41,7 +43,8 @@ class NormalizingFlow(ABC, pl.LightningModule):
         transformed = batch
 
         for flow in self.flows[::-1]:
-            transformed.update(flow.inverse(**transformed))
+            result = flow.inverse(**transformed)
+            transformed["z"] = result["z"]
 
         return self.decode(transformed)
 
@@ -54,8 +57,8 @@ class NormalizingFlow(ABC, pl.LightningModule):
         log_pz = self.prior.log_prob(z).sum()
         log_px = log_dj + log_pz
 
-        return -log_px.mean()
-
+        return -log_pz.mean()
+    
     def training_step(self, batch, batch_idx):
         loss = self.get_loss(batch)
         self.log(f"train_loss", loss)

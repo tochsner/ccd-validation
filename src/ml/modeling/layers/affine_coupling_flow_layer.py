@@ -2,12 +2,18 @@ from torch import Tensor
 from torch import nn
 import torch
 import numpy as np
-from src.ml.modeling.flow_layers import ConditionalFlowLayer
+from src.ml.modeling.layers.flow_layers import ConditionalFlowLayer
 
 
 class MaskedAffineFlowLayer(ConditionalFlowLayer):
 
-    def __init__(self, mask: Tensor, translate: nn.Module, scale: nn.Module, context_embedding: nn.Module):
+    def __init__(
+        self,
+        mask: Tensor,
+        translate: nn.Module,
+        scale: nn.Module,
+        context_embedding: nn.Module,
+    ):
         super().__init__()
 
         self.translate = translate
@@ -23,8 +29,11 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         scale = self.scale(z_masked, embedded_context)
         translation = self.translate(z_masked, embedded_context)
 
-        z = z_masked + (1 - self.mask) * (z * torch.exp(scale) + translation)
-        log_det = torch.sum((1 - self.mask) * scale, dim=list(range(1, self.mask.dim())))
+        scale = scale * (1 - self.mask)
+        translation = translation * (1 - self.mask)
+
+        z = (z + translation) * torch.exp(scale)
+        log_det = torch.sum(scale, dim=list(range(1, self.mask.dim())))
 
         return {
             "z": z,
@@ -38,14 +47,13 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         embedded_context = self.context_embedding(context)
 
         scale = self.scale(z_masked, embedded_context)
-        nan = torch.tensor(np.nan, dtype=z.dtype, device=z.device)
-        scale = torch.where(torch.isfinite(scale), scale, nan)
+        translation = self.translate(z_masked, embedded_context)
 
-        trans = self.translate(z_masked, embedded_context)
-        trans = torch.where(torch.isfinite(trans), trans, nan)
+        scale = scale * (1 - self.mask)
+        translation = translation * (1 - self.mask)
 
-        z = z_masked + (1 - self.mask) * (z - trans) * torch.exp(-scale)
-        log_det = -torch.sum((1 - self.mask) * scale, dim=list(range(1, self.mask.dim())))
+        z = (z * torch.exp(-scale)) - translation
+        log_det = -torch.sum(scale, dim=list(range(1, self.mask.dim())))
 
         return {
             "z": z,

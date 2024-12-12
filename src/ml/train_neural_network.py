@@ -37,8 +37,8 @@ def train_neural_network(
     )
 
     train_loader = DataLoader(train_dataset, **dataloader_config)
-    test_loader = DataLoader(test_dataset)
-    val_loader = DataLoader(val_dataset)
+    test_loader = DataLoader(test_dataset, **dataloader_config)
+    val_loader = DataLoader(val_dataset, **dataloader_config)
 
     optimizer = optimizer_factory(**optimizer_config)
     model = model_factory(
