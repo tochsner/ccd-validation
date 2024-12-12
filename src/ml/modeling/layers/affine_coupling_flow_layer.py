@@ -17,7 +17,8 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
 
         self.translate = translate
         self.scale = scale
-        self.mask = mask
+        
+        self.register_buffer("mask", mask)
 
     def forward(self, z, **kwargs):
         z_masked = self.mask * z
