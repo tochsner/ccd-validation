@@ -1,4 +1,4 @@
-run_name: debug_simple_conditional_flow
+run_name: debug_yule_10
 
 data_set:
   name: tree_datasets
@@ -12,7 +12,7 @@ preprocessing:
   - name: remove_tree
 
 training:
-    comet_project_name: debug_simple_conditional_flow
+    comet_project_name: debug_yule_10
 
     splitting_config:
       train_fraction: 0.7

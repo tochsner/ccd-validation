@@ -3,6 +3,7 @@ import torch
 
 import torch.nn.functional as F
 from torch import nn, optim
+from src.ml.modeling.layers.log_flow_layer import LogFlowLayer
 from src.ml.modeling.layers.affine_coupling_flow_layer import MaskedAffineFlowLayer
 from src.ml.modeling.normalizing_flow import NormalizingFlow
 
@@ -60,6 +61,8 @@ class ConditionalTreeFlow(NormalizingFlow):
         optimizer: Callable[[Iterator[nn.Parameter]], optim.Optimizer],
     ):
         flow_layers: list[nn.Module] = []
+
+        flow_layers.append(LogFlowLayer())
 
         for _ in range(num_blocks):
             flow_layers.append(
