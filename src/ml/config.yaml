@@ -32,4 +32,4 @@ training:
       mask_fraction: 0.5
 
     trainer_config:
-      max_epochs: 100
+      max_epochs: 20

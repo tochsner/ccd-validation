@@ -29,7 +29,7 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         translation = translation * (1 - self.mask)
 
         z = (z + translation) * torch.exp(scale)
-        log_det = torch.sum(scale, dim=list(range(1, self.mask.dim())))
+        log_det = torch.sum(scale, dim=list(range(1, scale.dim())))
 
         return {
             "z": z,
@@ -46,7 +46,7 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         translation = translation * (1 - self.mask)
 
         z = (z * torch.exp(-scale)) - translation
-        log_det = -torch.sum(scale, dim=list(range(1, self.mask.dim())))
+        log_det = -torch.sum(scale, dim=list(range(1, scale.dim())))
 
         return {
             "z": z,
