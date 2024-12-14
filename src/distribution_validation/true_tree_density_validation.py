@@ -50,7 +50,7 @@ def generate_empirical_cdf_plots():
         posterior_df = posterior_df.drop(posterior_df.index[0])
 
         dict_true_tree_percentiles["dataset_name"].append(dataset_name)
-        dict_true_tree_percentiles["model_name"].append(model_name)
+        dict_true_tree_percentiles["model_name"].append(model_name.replace("uncon", "con"))
         dict_true_tree_percentiles["true_tree_percentile"].append(
             stats.percentileofscore(posterior_df.log_posterior, true_posterior)
         )

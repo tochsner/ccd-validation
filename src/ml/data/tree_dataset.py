@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional
 from torch.utils.data import Dataset
 from src.datasets.load_trees import load_trees_from_file
 
@@ -27,11 +27,11 @@ def tree_datasets(
     directory: str,
     glob: str,
     max_files: Optional[int] = None,
-) -> list[TreeDataset]:
+) -> Iterable[tuple[str, TreeDataset]]:
     """Builds tree datasets for the tree files in a directory."""
     files = list(Path(directory).glob(glob))
 
     if max_files:
         files = files[:max_files]
 
-    return [TreeDataset(file) for file in files]
+    yield from ((file.stem, TreeDataset(file)) for file in files)

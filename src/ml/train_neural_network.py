@@ -18,7 +18,7 @@ torch.set_default_device(torch.device("cpu"))
 
 def train_neural_network(
     dataset: Dataset,
-    comet_project_name: str,
+    run_name: str,
     splitting_config: dict[str, Any],
     dataloader_config: dict[str, Any],
     optimizer_config: dict[str, Any],
@@ -43,7 +43,7 @@ def train_neural_network(
     optimizer = optimizer_factory(**optimizer_config)
     model = model_factory(
         optimizer=optimizer,
-        dim=len(train_dataset[0]["branch_lengths"]),
+        input_example=train_dataset[0],
         **model_config,
     )
 
@@ -52,7 +52,7 @@ def train_neural_network(
         callbacks=[
             ModelCheckpoint(
                 monitor="val_loss",
-                dirpath=f"ml_data/models/{comet_project_name}",
+                dirpath=f"ml_data/models/{run_name}",
                 filename="{epoch:02d}-{val_loss:.2f}",
                 save_top_k=1,
             ),

@@ -41,27 +41,30 @@ def run():
     # load data
 
     logger.info("Loading data.")
-
     data_sets = data_sets_factory(**config["data_set"])
-    logger.info("Loaded {} data sets.", len(data_sets))
 
-    # preprocess data
+    for data_set_name, data_set in data_sets:
+        logger.info("Processing data set {}.", data_set_name)
+        
+        # preprocess data
 
-    logger.info("Start preprocessing.")
+        logger.info("Start preprocessing.")
 
-    for preprocessing_step in config["preprocessing"]:
-        logger.info("Perform {} preprocessing.", preprocessing_step["name"])
+        for preprocessing_step in config["preprocessing"]:
+            logger.info("Perform {} preprocessing.", preprocessing_step["name"])
 
-        transform = preprocessing_factory(**preprocessing_step)
-        data_sets = [transform(data_set) for data_set in data_sets]
+            transform = preprocessing_factory(**preprocessing_step)
+            data_set = transform(data_set)
 
-    # train models
+        # train models
 
-    logger.info("Start training.")
-
-    for i, data_set in enumerate(data_sets):
-        logger.info("Start training on dataset {}.", i)
-        train_neural_network(dataset=data_set, **config["training"])
+        logger.info("Start training.")
+        
+        train_neural_network(
+            dataset=data_set,
+            run_name=f"{run_name}/{data_set_name}",
+            **config["training"],
+        )
 
     # copy to history
 

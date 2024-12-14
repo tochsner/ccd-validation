@@ -1,4 +1,4 @@
-run_name: debug_yule_10
+run_name: debug_dummy
 
 data_set:
   name: tree_datasets
@@ -12,24 +12,24 @@ preprocessing:
   - name: remove_tree
 
 training:
-    comet_project_name: debug_yule_10
-
     splitting_config:
       train_fraction: 0.7
       test_fraction: 0.15
 
     dataloader_config:
-      batch_size: 256
+      batch_size: 128
       shuffle: true
 
     optimizer_config:
       name: adam
-      lr: 0.0001
+      lr: 0.00005
     
     model_config:
       name: conditional_tree_flow
-      num_blocks: 24
+      num_blocks: 8
       mask_fraction: 0.5
+      context_embedding_dim: 8
 
     trainer_config:
       max_epochs: 20
+      num_sanity_val_steps: 0

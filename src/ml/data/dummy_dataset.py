@@ -19,5 +19,5 @@ class DummyDataset(Dataset):
         }
 
 
-def dummy_datasets() -> list[DummyDataset]:
-    return [DummyDataset()]
+def dummy_datasets() -> list[tuple[str, DummyDataset]]:
+    return [("dummy", DummyDataset())]

@@ -11,19 +11,23 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         mask: Tensor,
         translate: nn.Module,
         scale: nn.Module,
+        context_embedding: nn.Module
     ):
         super().__init__()
 
         self.translate = translate
         self.scale = scale
+        self.context_embedding = context_embedding
         
         self.register_buffer("mask", mask)
 
-    def forward(self, z, **kwargs):
+    def forward(self, z, context, **kwargs):
         z_masked = z * self.mask
 
-        scale = self.scale(z_masked)
-        translation = self.translate(z_masked)
+        embedded_context = self.context_embedding(context)
+
+        scale = self.scale(z_masked, embedded_context)
+        translation = self.translate(z_masked, embedded_context)
 
         scale = scale * (1 - self.mask)
         translation = translation * (1 - self.mask)
@@ -36,11 +40,13 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
             "log_dj": log_det,
         }
 
-    def inverse(self, z, **kwargs):
+    def inverse(self, z, context, **kwargs):
         z_masked = z * self.mask
 
-        scale = self.scale(z_masked)
-        translation = self.translate(z_masked)
+        embedded_context = self.context_embedding(context)
+
+        scale = self.scale(z_masked, embedded_context)
+        translation = self.translate(z_masked, embedded_context)
 
         scale = scale * (1 - self.mask)
         translation = translation * (1 - self.mask)

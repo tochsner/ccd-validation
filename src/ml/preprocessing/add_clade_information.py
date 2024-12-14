@@ -66,11 +66,4 @@ class AddCladeInformation(TransformedDataset):
             )
             all_observed_clades.update(observed_clades)
 
-        all_clade_indices = {clade: i for i, clade in enumerate(all_observed_clades)}
-
-        for item in self.source_dataset:
-            item["clades_one_hot"] = torch.zeros(len(all_observed_clades))
-            for clade in item["clades"]:
-                item["clades_one_hot"][all_clade_indices[clade]] = 1
-
         self.transformed_data = [item for item in self.source_dataset]

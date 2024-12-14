@@ -35,7 +35,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
             transformed["z"] = result["z"]
             transformed["log_dj"] += result["log_dj"]
 
-        return transformed
+        return {**batch, **transformed}
 
     def inverse(self, batch):
         transformed = batch
@@ -44,7 +44,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
             result = flow.inverse(**transformed)
             transformed["z"] = result["z"]
 
-        return self.decode(transformed)
+        return self.decode({**batch, **transformed})
 
     def get_log_likelihood(self, batch):
         transformed = self.forward(batch)
@@ -63,7 +63,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
         z = transformed["z"]
         log_dj = transformed["log_dj"]
 
-        log_pz = self.prior.log_prob(z).sum()
+        log_pz = self.prior.log_prob(z).sum(dim=1)
         log_px = log_dj + log_pz
 
         return -log_px.mean()
@@ -74,7 +74,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
         prior_sample = self.prior.sample(transformed["z"].shape)
         transformed["z"] = prior_sample
 
-        return self.inverse(transformed)
+        return self.inverse({**batch, **transformed})
 
     def training_step(self, batch, batch_idx):
         loss = self.get_loss(batch)
