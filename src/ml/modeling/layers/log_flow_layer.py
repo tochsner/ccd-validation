@@ -7,7 +7,7 @@ class LogFlowLayer(FlowLayer):
     def forward(self, z, **kwargs):
         return {
             "z": torch.log(z),
-            "log_dj": -torch.sum(torch.log(z), dim=list(range(1, z.dim()))),
+            "log_dj": -torch.sum(torch.log(torch.abs(z)), dim=list(range(1, z.dim()))),
         }
 
     def inverse(self, z, **kwargs):

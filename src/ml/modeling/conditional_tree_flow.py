@@ -19,26 +19,22 @@ class ContextEmmbedding(nn.Module):
         x = self.linear_1(x)
         x = F.relu(x)
         x = self.linear_2(x)
-        x = F.relu(x)
         return x
 
 
 class Conditioner(nn.Module):
     def __init__(self, dim: int, embedding_dim: int, context_embedding_dim: int):
         super().__init__()
+        self.dim = dim
+
         self.linear_1 = nn.Linear(embedding_dim + context_embedding_dim, dim)
         self.linear_2 = nn.Linear(dim, dim)
 
-        self.scaling_factor = nn.Parameter(torch.zeros(dim))
-
     def forward(self, z, context):
-        z = self.linear_1(torch.cat([z, context], dim=1))
-        z = F.relu(z)
-        z = self.linear_2(z)
-
-        s_fac = self.scaling_factor.exp()
-
-        return z # torch.tanh(z / s_fac) * s_fac
+        res = self.linear_1(torch.cat([z, context], dim=1))
+        res = F.relu(res)
+        res = self.linear_2(res)
+        return z[:, :self.dim] + res
 
 
 class ConditionalTreeFlow(NormalizingFlow):

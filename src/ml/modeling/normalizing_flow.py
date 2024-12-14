@@ -28,6 +28,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
         raise NotImplementedError
 
     def forward(self, batch):
+        # transforms an input into latent space
         transformed = self.encode(batch)
 
         for flow in self.flows:
@@ -38,6 +39,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
         return {**batch, **transformed}
 
     def inverse(self, batch):
+        # transforms latent space into flow space
         transformed = batch
 
         for flow in self.flows[::-1]:
@@ -52,21 +54,13 @@ class NormalizingFlow(ABC, pl.LightningModule):
         z = transformed["z"]
         log_dj = transformed["log_dj"]
 
-        log_pz = self.prior.log_prob(z).sum(dim=1)
+        log_pz = self.prior.log_prob(z).sum(dim=list(range(1, z.dim())))
         log_px = log_dj + log_pz
 
         return log_px
 
     def get_loss(self, batch):
-        transformed = self.forward(batch)
-
-        z = transformed["z"]
-        log_dj = transformed["log_dj"]
-
-        log_pz = self.prior.log_prob(z).sum(dim=1)
-        log_px = log_dj + log_pz
-
-        return -log_px.mean()
+        return -self.get_log_likelihood(batch).mean()
 
     def sample(self, batch):
         transformed = self.encode(batch)

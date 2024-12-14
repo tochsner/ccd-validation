@@ -65,4 +65,4 @@ class BatchNormFlow(FlowLayer):
         mean = z.mean(0)
         var = (z - mean).pow(2).mean(0) + self.eps
         log_det = torch.log(self.gamma) - 0.5 * torch.log(var + self.eps)
-        return torch.sum(log_det, -1)
+        return log_det.sum(dim=list(range(1, log_det.dim())))
