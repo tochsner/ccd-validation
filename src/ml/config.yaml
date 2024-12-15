@@ -1,15 +1,20 @@
 run_name: debug_dummy
 
 data_set:
-  name: tree_datasets
-  directory: data/mcmc_runs
-  glob: "yule-10*.trees"
-  max_files: 1
+  name: dummy_datasets
 
-preprocessing:
-  - name: add_taxa_names
-  - name: add_clade_information
-  - name: remove_tree
+preprocessing: []
+
+# data_set:
+#   name: tree_datasets
+#   directory: data/mcmc_runs
+#   glob: "yule-10*.trees"
+#   max_files: 1  
+
+# preprocessing:
+#   - name: add_taxa_names
+#   - name: add_clade_information
+#   - name: remove_tree
 
 training:
     splitting_config:
@@ -17,12 +22,13 @@ training:
       test_fraction: 0.15
 
     dataloader_config:
-      batch_size: 128
+      batch_size: 64
       shuffle: true
 
     optimizer_config:
       name: adam
-      lr: 0.00005
+      lr: 0.001
+      weight_decay: 0.0001
     
     model_config:
       name: conditional_tree_flow
@@ -31,5 +37,5 @@ training:
       context_embedding_dim: 8
 
     trainer_config:
-      max_epochs: 25
+      max_epochs: 50
       num_sanity_val_steps: 0

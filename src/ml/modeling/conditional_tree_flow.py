@@ -14,6 +14,7 @@ class ContextEmmbedding(nn.Module):
         super().__init__()
         self.linear_1 = nn.Linear(context_dim, embedding_dim)
         self.linear_2 = nn.Linear(embedding_dim, embedding_dim)
+        self.dropout = nn.Dropout(p=0.3)
 
     def forward(self, x):
         x = self.linear_1(x)
@@ -29,6 +30,7 @@ class Conditioner(nn.Module):
 
         self.linear_1 = nn.Linear(embedding_dim + context_embedding_dim, dim)
         self.linear_2 = nn.Linear(dim, dim)
+        self.dropout = nn.Dropout(p=0.3)
 
     def forward(self, z, context):
         res = self.linear_1(torch.cat([z, context], dim=1))

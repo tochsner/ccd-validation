@@ -1,5 +1,3 @@
-from pathlib import Path
-from typing import Optional
 import torch
 from torch.utils.data import Dataset
 
@@ -14,8 +12,9 @@ class DummyDataset(Dataset):
 
     def __getitem__(self, index):
         return {
-            "branch_lengths": torch.randn(10) * 0.001,
-            "clades_one_hot": torch.randint(0, 2, (20,)).float(),
+            "branch_lengths": 5 + torch.randn(9).pow(2), 
+            "clades": list(range(9)),
+            "taxa_names": [str(i) for i in range(10)],
         }
 
 
