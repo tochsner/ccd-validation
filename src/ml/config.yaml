@@ -22,7 +22,7 @@ training:
 
     optimizer_config:
       name: adam
-      lr: 0.0001
+      lr: 0.00005
     
     model_config:
       name: conditional_tree_flow
@@ -31,5 +31,5 @@ training:
       context_embedding_dim: 8
 
     trainer_config:
-      max_epochs: 20
+      max_epochs: 25
       num_sanity_val_steps: 0
