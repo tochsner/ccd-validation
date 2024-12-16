@@ -4,6 +4,7 @@ from typing import Callable, Iterator
 import lightning.pytorch as pl
 from torch import nn, optim
 
+from src.ml.modeling.weight_sharing_tree_flow import WeightSharingTreeFlow
 from src.ml.modeling.conditional_tree_flow import ConditionalTreeFlow
 
 
@@ -14,6 +15,8 @@ def model_factory(
 ) -> pl.LightningModule:
     """Factory function for models."""
     match name:
+        case "weight_sharing_tree_flow":
+            return WeightSharingTreeFlow(optimizer=optimizer, **kwargs)
         case "conditional_tree_flow":
             return ConditionalTreeFlow(optimizer=optimizer, **kwargs)
         case _:

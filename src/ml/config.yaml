@@ -1,4 +1,4 @@
-run_name: yule_10_simple
+run_name: debug_weight_sharing
 
 # data_set:
 #   name: dummy_datasets
@@ -18,11 +18,11 @@ preprocessing:
 
 training:
     splitting_config:
-      train_fraction: 0.7
-      test_fraction: 0.15
+      train_fraction: 0.6
+      test_fraction: 0.2
 
     dataloader_config:
-      batch_size: 64
+      batch_size: 512
       shuffle: true
 
     optimizer_config:
@@ -31,10 +31,9 @@ training:
       weight_decay: 0.0001
     
     model_config:
-      name: conditional_tree_flow
-      num_blocks: 8
+      name: weight_sharing_tree_flow
+      num_blocks: 4
       mask_fraction: 0.5
-      context_embedding_dim: 8
 
     trainer_config:
-      max_epochs: 20
+      max_epochs: 10

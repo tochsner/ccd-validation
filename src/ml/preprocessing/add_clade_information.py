@@ -27,24 +27,17 @@ class AddCladeInformation(TransformedDataset):
             return node_bitstring
 
         left_clade = self._process_tree(
-            bio_clade.clades[0],
-            taxa_names,
-            observed_clades,
-            min_branch_lengths
+            bio_clade.clades[0], taxa_names, observed_clades, min_branch_lengths
         )
         right_clade = self._process_tree(
-            bio_clade.clades[1],
-            taxa_names,
-            observed_clades,
-            min_branch_lengths
+            bio_clade.clades[1], taxa_names, observed_clades, min_branch_lengths
         )
 
         clade_bitstring = left_clade | right_clade
         observed_clades.append(clade_bitstring)
 
         min_branch_lengths[clade_bitstring] = min(
-            bio_clade.clades[0].branch_length,
-            bio_clade.clades[1].branch_length
+            bio_clade.clades[0].branch_length, bio_clade.clades[1].branch_length
         )
 
         return clade_bitstring
@@ -58,12 +51,18 @@ class AddCladeInformation(TransformedDataset):
 
             observed_clades: list[int] = []
             min_branch_lengths: dict[int, float] = {}
-            self._process_tree(tree.root, taxa_names, observed_clades, min_branch_lengths)
+            self._process_tree(
+                tree.root, taxa_names, observed_clades, min_branch_lengths
+            )
 
             item["clades"] = sorted(observed_clades)
             item["branch_lengths"] = torch.tensor(
                 [min_branch_lengths[clade] for clade in item["clades"]]
             )
             all_observed_clades.update(observed_clades)
+
+        all_observed_clades_list = sorted(list(all_observed_clades))
+        for item in self.source_dataset:
+            item["all_observed_clades"] = all_observed_clades_list
 
         self.transformed_data = [item for item in self.source_dataset]
