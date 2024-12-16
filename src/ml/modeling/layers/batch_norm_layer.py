@@ -15,10 +15,6 @@ class BatchNormFlow(FlowLayer):
         self.momentum = momentum
         self.eps = eps
 
-        # Trainable scale and shift (cf. original paper)
-        self.gamma = nn.Parameter(torch.ones(dim))
-        self.beta = nn.Parameter(torch.zeros(dim))
-
     def forward(self, z, **kwargs):
         if self.training:
             # Current batch stats
@@ -36,9 +32,9 @@ class BatchNormFlow(FlowLayer):
             var = self.r_var
             
         x_hat = (z - mean) / var.sqrt()
-        y = self.gamma * x_hat + self.beta
+
         return {
-            "z": y,
+            "z": x_hat,
             "log_dj": self.log_abs_det_jacobian(z),
         }
 
@@ -49,8 +45,8 @@ class BatchNormFlow(FlowLayer):
         else:
             mean = self.r_mean
             var = self.r_var
-        x_hat = (z - self.beta) / self.gamma
-        y = x_hat * var.sqrt() + mean
+        
+        y = z * var.sqrt() + mean
         return {
             "z": y,
             "log_dj": self.log_abs_det_jacobian(z),
@@ -60,5 +56,5 @@ class BatchNormFlow(FlowLayer):
         # Here we only need the variance
         mean = z.mean(0)
         var = (z - mean).pow(2) + self.eps
-        log_det = torch.log(self.gamma) - 0.5 * torch.log(var + self.eps)
+        log_det = -0.5 * torch.log(var + self.eps)
         return torch.sum(log_det, -1)

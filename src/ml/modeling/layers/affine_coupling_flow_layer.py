@@ -20,6 +20,7 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         self.context_embedding = context_embedding
         
         self.register_buffer("mask", mask)
+        self.scaling = nn.Parameter(torch.ones(mask.shape))
 
     def forward(self, z, context, **kwargs):
         z_masked = z * self.mask
@@ -30,9 +31,11 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         translation = self.translate(z_masked, embedded_context)
 
         scale = scale * (1 - self.mask)
+        scale = self.scaling * torch.tanh(scale)
         translation = translation * (1 - self.mask)
 
         z = (z * torch.exp(-scale)) - translation
+
         log_det = torch.sum(-scale, dim=list(range(1, scale.dim())))
 
         return {
@@ -46,6 +49,7 @@ class MaskedAffineFlowLayer(ConditionalFlowLayer):
         embedded_context = self.context_embedding(context)
 
         scale = self.scale(z_masked, embedded_context)
+        scale = self.scaling * torch.tanh(scale)
         translation = self.translate(z_masked, embedded_context)
 
         scale = scale * (1 - self.mask)
