@@ -14,7 +14,7 @@ CCD1_SAMPLES_DIR = Path("data/ccd1_sample_data")
 OUTPUT_DIR = Path("data/true_tree_density_data")
 
 MODEL_NAME = "nf-conditioned"
-MODELS_PATH = Path("ml_data/models/conditional_tree_flow_2024_12_14_21_48_10")
+MODELS_PATH = Path("ml_data/models/yule_10_simple_2024_12_16_16_41_10")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 
@@ -49,7 +49,7 @@ def _preprocess_data(config, data_sets):
         transform = preprocessing_factory(**preprocessing_step)
         data_sets = [transform(data_set) for data_set in data_sets]
 
-    data_loader = DataLoader(data_sets[0], batch_size=16)
+    data_loader = DataLoader(data_sets[0], batch_size=16, shuffle=False)
 
     return data_loader, data_sets[0][0]
 
@@ -90,14 +90,15 @@ def true_tree_density_validation():
         log_likelihoods = []
 
         for tree_batch in iter(data_loader):
-            # try:
             sample_batch = model.sample(tree_batch)
+
+            if len(log_likelihoods) == 0:
+                # this is the first tree, i.e. the true tree
+                sample_batch["branch_lengths"][0] = model.encode(tree_batch)["z"][0]
+
             model_log_likelihood_batch = (
                 model.get_log_likelihood(sample_batch).detach().numpy()
             )
-            # except Exception as e:
-            #     print(e)
-            #     model_log_likelihood_batch = [-np.inf] * len(tree_batch)
 
             for i, model_log_likelihood in enumerate(model_log_likelihood_batch):
                 log_likelihood = (

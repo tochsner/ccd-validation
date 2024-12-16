@@ -4,7 +4,7 @@ from pathlib import Path
 from random import sample
 from typing import Optional
 from Bio.Phylo.BaseTree import Tree
-from Bio.Phylo._io import parse
+from Bio.Phylo._io import parse, write
 from tqdm import tqdm
 
 
@@ -51,3 +51,10 @@ def load_trees_from_file(
 ) -> list[Tree]:
     """Loads trees for the given tree file."""
     return list(itertools.islice(parse(tree_file, "nexus"), max_trees))
+
+
+def write_trees_to_file(trees: list[Tree], tree_file: Path):
+    """Writes trees to a file."""
+    with open(tree_file, "w") as f:
+        for tree in trees:
+            write(tree, f, "nexus")

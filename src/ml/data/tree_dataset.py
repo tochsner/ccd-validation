@@ -27,9 +27,13 @@ def tree_datasets(
     directory: str,
     glob: str,
     max_files: Optional[int] = None,
+    skip_files: Optional[int] = None,
 ) -> Iterable[tuple[str, TreeDataset]]:
     """Builds tree datasets for the tree files in a directory."""
     files = list(Path(directory).glob(glob))
+
+    if skip_files:
+        files = files[skip_files:]
 
     if max_files:
         files = files[:max_files]

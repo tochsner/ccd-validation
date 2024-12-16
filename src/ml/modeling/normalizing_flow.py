@@ -33,8 +33,6 @@ class NormalizingFlow(ABC, pl.LightningModule):
 
         for flow in self.flows:
             result = flow.forward(**transformed)
-            if not result["z"].isfinite().all():
-                a = 5
             transformed["z"] = result["z"]
             transformed["log_dj"] += result["log_dj"]
 
