@@ -32,11 +32,11 @@ class UnconditionalMaskedAffineFlowLayer(FlowLayer):
 
         z = (z * torch.exp(-scale)) - translation
 
-        log_det = torch.sum(-scale, dim=list(range(1, scale.dim())))
+        log_det = -scale
 
         return {
             "z": z,
-            "log_dj": log_det,
+            "log_dj": log_det
         }
 
     def inverse(self, z, **kwargs):
@@ -50,7 +50,7 @@ class UnconditionalMaskedAffineFlowLayer(FlowLayer):
         translation = translation * (1 - self.mask)
 
         z = (z + translation) * torch.exp(scale)
-        log_det = torch.sum(scale, dim=list(range(1, scale.dim())))
+        log_det = scale
 
         return {
             "z": z,

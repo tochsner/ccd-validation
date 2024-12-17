@@ -34,8 +34,9 @@ class NormalizingFlow(ABC, pl.LightningModule):
         for flow in self.flows:
             result = flow.forward(**transformed)
             transformed["z"] = result["z"]
-            transformed["log_dj"] += result["log_dj"]
-
+            transformed["log_dj"] += torch.sum(
+                result["log_dj"], dim=list(range(1, result["log_dj"].dim()))
+            )
 
         return {**batch, **transformed}
 

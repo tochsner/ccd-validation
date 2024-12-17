@@ -6,12 +6,13 @@ from torch.utils.data import DataLoader
 
 import yaml
 
+from src.ml.preprocessing.add_clade_information import set_branch_lengths
 from src.ml.data.tree_dataset import TreeDataset
 from src.ml.modeling import model_factory, optimizer_factory
 from src.ml.modeling.conditional_tree_flow import ConditionalTreeFlow
 from src.ml.preprocessing import preprocessing_factory
 
-from src.datasets.load_trees import write_trees_to_file
+from src.datasets.load_trees import write_trees_to_file, load_trees_from_file
 
 OUTPUT_DIR = Path("data/map_data")
 
@@ -64,8 +65,8 @@ def _load_model(config, input_example, data_set_name):
 def true_tree_density_validation():
     config = _load_config()
 
-    for map_tree_file in OUTPUT_DIR.glob("*_10_mrca.trees"):
-        dataset, run, num_samples, method = map_tree_file.stem.split("_")
+    for map_tree_file in OUTPUT_DIR.glob("*_mrca.trees"):
+        dataset, run, num_samples, _ = map_tree_file.stem.split("_")
 
         if int(num_samples) <= 1000:
             # this is not the full run
@@ -84,11 +85,23 @@ def true_tree_density_validation():
         logger.info("Start validation.")
 
         first_and_only_batch = next(iter(data_loader))
-        samples = [model.sample(first_and_only_batch) for _ in range(10)]
+        samples = [
+            model.sample(first_and_only_batch)["branch_lengths"] for _ in range(500)
+        ]
         samples = torch.cat(samples, dim=0)  # type: ignore
         mean_sample = torch.mean(samples, dim=0)
 
-        # TODO apply branch lengths to the correct clades and store the tree again
+        tree = load_trees_from_file(map_tree_file)[0]
+
+        set_branch_lengths(
+            tree,
+            mean_sample.detach().numpy().tolist(),
+            [int(x.detach()) for x in first_and_only_batch["clades"]],
+        )
+
+        write_trees_to_file(
+            [tree], OUTPUT_DIR / f"{dataset}_{run}_{num_samples}_{MODEL_NAME}.trees"
+        )
 
 
 if __name__ == "__main__":

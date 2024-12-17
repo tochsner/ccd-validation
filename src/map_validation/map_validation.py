@@ -30,11 +30,33 @@ def _create_scores_plot(df_scores: pd.DataFrame):
     logging.info(f"Create score plot...")
 
     for dataset, df in df_scores.groupby("dataset"):
+        # plot data likelihoods on full dataset
+
         fig, axs = plt.subplots(ncols=NUM_SCORES, figsize=(NUM_SCORES * 4, 4))
 
         for i, score in enumerate(SCORES):
-            print(df.groupby("model")["Squared Rooted Branch Score"].mean())
+            sns.barplot(
+                x="model", y=score, data=df[df.sample_size == "all"], ax=axs[i], errorbar=None
+            )
 
+            axs[i].set_xlabel("Model")
+            axs[i].set_xticks(
+                axs[i].get_xticks(), axs[i].get_xticklabels(), rotation=30, ha="right"
+            )
+
+        fig.suptitle(f"Scores for Different MAP Estimators ({dataset}) on All Data ↓")
+        plt.tight_layout()
+
+        plt.savefig(GRAPHS_DIR / f"{dataset}_full_scores.png", dpi=200)
+        plt.clf()
+        plt.close()
+
+
+        # plot data likelihoods for different sample sizes
+
+        fig, axs = plt.subplots(ncols=NUM_SCORES, figsize=(NUM_SCORES * 4, 4))
+
+        for i, score in enumerate(SCORES):
             sns.lineplot(
                 x="sample_size", hue="model", y=score, data=df, ax=axs[i], errorbar=None
             )
@@ -42,9 +64,6 @@ def _create_scores_plot(df_scores: pd.DataFrame):
             axs[i].set_xlabel("Sample Size")
             axs[i].set_xticks(
                 axs[i].get_xticks(), axs[i].get_xticklabels(), rotation=30, ha="right"
-            )
-            axs[i].set_ylim(
-                0, 0.02
             )
 
         fig.suptitle(f"Scores for Different MAP Estimators ({dataset}) ↓")

@@ -71,7 +71,10 @@ class WeightSharingTreeFlow(NormalizingFlow):
             result = flow.forward(**transformed)
 
             transformed["z"] = torch.nan_to_num(result["z"] * batch_mask)
-            transformed["log_dj"] += result["log_dj"]
+            transformed["log_dj"] += torch.sum(
+                torch.nan_to_num(result["log_dj"] * batch_mask),
+                dim=list(range(1, result["log_dj"].dim())),
+            )
 
         return {**batch, **transformed}
 
@@ -105,7 +108,6 @@ class WeightSharingTreeFlow(NormalizingFlow):
                 batch_mask[i, clade_index] = 1.0
 
         return batch_mask
-
 
     def encode(self, batch) -> dict:
         # binary encode clades
