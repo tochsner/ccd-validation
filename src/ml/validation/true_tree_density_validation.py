@@ -8,13 +8,14 @@ import yaml
 from src.ml.data.tree_dataset import TreeDataset
 from src.ml.modeling import model_factory, optimizer_factory
 from src.ml.modeling.conditional_tree_flow import ConditionalTreeFlow
+from src.ml.modeling.weight_sharing_tree_flow import WeightSharingTreeFlow
 from src.ml.preprocessing import preprocessing_factory
 
 CCD1_SAMPLES_DIR = Path("data/ccd1_sample_data")
 OUTPUT_DIR = Path("data/true_tree_density_data")
 
-MODEL_NAME = "nf-conditioned"
-MODELS_PATH = Path("ml_data/models/yule_10_simple_2024_12_16_16_41_10")
+MODEL_NAME = "nf-weight-sharing"
+MODELS_PATH = Path("ml_data/models/debug_weight_sharing_2024_12_17_16_34_46")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 
@@ -62,7 +63,7 @@ def _load_model(config, input_example, data_loader, data_set_name):
         **config["training"]["model_config"],
     )
 
-    model = ConditionalTreeFlow.load_from_checkpoint(
+    model = WeightSharingTreeFlow.load_from_checkpoint(
         next((MODELS_PATH / data_set_name).glob("*.ckpt"))
     )
     model = model.eval()
@@ -94,7 +95,7 @@ def true_tree_density_validation():
 
             if len(log_likelihoods) == 0:
                 # this is the first tree, i.e. the true tree
-                sample_batch["branch_lengths"][0] = model.encode(tree_batch)["z"][0]
+                sample_batch["branch_lengths"][0] = tree_batch["branch_lengths"][0]
 
             model_log_likelihood_batch = (
                 model.get_log_likelihood(sample_batch).detach().numpy()

@@ -59,6 +59,10 @@ class WeightSharingTreeFlow(NormalizingFlow):
             torch.tensor(input_example["all_observed_clades"]),
         )
 
+        self.observed_clade_indices = {
+            int(clade): i for i, clade in enumerate(sorted(self.all_observed_clades))
+        }
+
     def forward(self, batch):
         # transforms an input into latent space
         batch_mask = self.get_batch_mask(batch)
@@ -95,34 +99,27 @@ class WeightSharingTreeFlow(NormalizingFlow):
 
     def get_batch_mask(self, batch):
         batch_size = len(batch["branch_lengths"])
-
-        num_branch_lengths = len(batch["branch_lengths"][0])
         num_clades = len(self.all_observed_clades)
 
-        all_observed_clades_list = sorted(self.all_observed_clades.tolist())
-
-        batch_mask = torch.zeros(batch_size, num_clades).float()
-        for i in range(batch_size):
-            for j in range(num_branch_lengths):
-                clade_index = all_observed_clades_list.index(batch["clades"][j][i])
-                batch_mask[i, clade_index] = 1.0
-
+        indices_to_mask = torch.stack(batch["clades"]).T.apply_(
+            self.observed_clade_indices.get
+        )
+        batch_mask = torch.zeros(batch_size, num_clades).scatter_(
+            1, indices_to_mask, 1.0
+        )
+        
         return batch_mask
 
     def encode(self, batch) -> dict:
-        # binary encode clades
-
         batch_size = len(batch["branch_lengths"])
-        num_branch_lengths = len(batch["branch_lengths"][0])
         num_clades = len(self.all_observed_clades)
 
-        all_observed_clades_list = sorted(self.all_observed_clades.tolist())
-
-        encoded_branch_lengths = torch.zeros(batch_size, num_clades)
-        for i in range(batch_size):
-            for j in range(num_branch_lengths):
-                clade_index = all_observed_clades_list.index(batch["clades"][j][i])
-                encoded_branch_lengths[i, clade_index] = batch["branch_lengths"][i][j]
+        indices_to_populate = torch.stack(batch["clades"]).T.apply_(
+            self.observed_clade_indices.get
+        )
+        encoded_branch_lengths = torch.zeros(batch_size, num_clades).scatter_(
+            1, indices_to_populate, batch["branch_lengths"]
+        )
 
         return {
             **batch,
@@ -131,8 +128,13 @@ class WeightSharingTreeFlow(NormalizingFlow):
         }
 
     def decode(self, batch) -> dict:
+        populate_indices = torch.stack(batch["clades"]).T.apply_(
+            self.observed_clade_indices.get
+        )
+        branch_lengths = torch.gather(batch["z"], 1, populate_indices)
+
         return {
             **batch,
-            "branch_lengths": batch["z"],
+            "branch_lengths": branch_lengths,
             "log_dj": batch["log_dj"],
         }

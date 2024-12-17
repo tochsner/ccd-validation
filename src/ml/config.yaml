@@ -32,8 +32,8 @@ training:
     
     model_config:
       name: weight_sharing_tree_flow
-      num_blocks: 4
+      num_blocks: 8
       mask_fraction: 0.5
 
     trainer_config:
-      max_epochs: 10
+      max_epochs: 5

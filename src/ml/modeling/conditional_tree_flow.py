@@ -70,7 +70,6 @@ class ConditionalTreeFlow(NormalizingFlow):
                     context_embedding=context_embedding,
                 )
             )
-            # flow_layers.append(BatchNormFlow(dim))
 
         super().__init__(
             optimizer,

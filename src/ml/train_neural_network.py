@@ -36,9 +36,15 @@ def train_neural_network(
         dataset, **splitting_config
     )
 
-    train_loader = DataLoader(train_dataset, **dataloader_config)
-    test_loader = DataLoader(test_dataset, **dataloader_config)
-    val_loader = DataLoader(val_dataset, **dataloader_config)
+    train_loader = DataLoader(
+        train_dataset, generator=torch.Generator(device="cpu"), **dataloader_config
+    )
+    test_loader = DataLoader(
+        test_dataset, generator=torch.Generator(device="cpu"), **dataloader_config
+    )
+    val_loader = DataLoader(
+        val_dataset, generator=torch.Generator(device="cpu"), **dataloader_config
+    )
 
     optimizer = optimizer_factory(**optimizer_config)
     model = model_factory(
