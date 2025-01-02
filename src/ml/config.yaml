@@ -1,4 +1,4 @@
-run_name: debug_weight_sharing
+run_name: debug_yule_10_simple_weight_sharing
 
 # data_set:
 #   name: dummy_datasets
@@ -8,7 +8,7 @@ run_name: debug_weight_sharing
 data_set:
   name: tree_datasets
   directory: data/mcmc_runs
-  glob: "yule-10*.trees"
+  glob: "yule-10_7*.trees"
   max_files: 100
 
 preprocessing:
@@ -18,16 +18,16 @@ preprocessing:
 
 training:
     splitting_config:
-      train_fraction: 0.6
-      test_fraction: 0.2
+      train_fraction: 0.7
+      test_fraction: 0.15
 
     dataloader_config:
-      batch_size: 512
+      batch_size: 64
       shuffle: true
 
     optimizer_config:
       name: adam
-      lr: 0.005
+      lr: 0.001
       weight_decay: 0.0001
     
     model_config:
@@ -36,4 +36,4 @@ training:
       mask_fraction: 0.5
 
     trainer_config:
-      max_epochs: 5
+      max_epochs: 10

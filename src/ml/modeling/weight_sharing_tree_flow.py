@@ -8,6 +8,7 @@ from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
 )
 from src.ml.modeling.layers.log_flow_layer import LogFlowLayer
 from src.ml.modeling.normalizing_flow import NormalizingFlow
+from functools import partial
 
 
 class Conditioner(nn.Module):
@@ -102,12 +103,12 @@ class WeightSharingTreeFlow(NormalizingFlow):
         num_clades = len(self.all_observed_clades)
 
         indices_to_mask = torch.stack(batch["clades"]).T.apply_(
-            self.observed_clade_indices.get
+            lambda x: self.observed_clade_indices.get(x, 0)
         )
         batch_mask = torch.zeros(batch_size, num_clades).scatter_(
             1, indices_to_mask, 1.0
         )
-        
+
         return batch_mask
 
     def encode(self, batch) -> dict:
@@ -115,10 +116,10 @@ class WeightSharingTreeFlow(NormalizingFlow):
         num_clades = len(self.all_observed_clades)
 
         indices_to_populate = torch.stack(batch["clades"]).T.apply_(
-            self.observed_clade_indices.get
+            lambda x: self.observed_clade_indices.get(x, 0)
         )
         encoded_branch_lengths = torch.zeros(batch_size, num_clades).scatter_(
-            1, indices_to_populate, batch["branch_lengths"]
+            1, indices_to_populate  , batch["branch_lengths"]
         )
 
         return {
@@ -129,7 +130,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
 
     def decode(self, batch) -> dict:
         populate_indices = torch.stack(batch["clades"]).T.apply_(
-            self.observed_clade_indices.get
+            lambda x: self.observed_clade_indices.get(x, 0)
         )
         branch_lengths = torch.gather(batch["z"], 1, populate_indices)
 
