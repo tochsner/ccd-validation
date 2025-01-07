@@ -41,6 +41,7 @@ def train_neural_network(
         "model_name": model_config["name"],
         **trainer_config,
     })
+    
     torch.set_default_dtype(torch.float32)
 
     train_dataset, val_dataset, test_dataset = create_data_splits(
@@ -73,12 +74,14 @@ def train_neural_network(
                 filename="{epoch:02d}-{val_loss:.2f}",
                 save_top_k=1,
             ),
-            EarlyStopping(monitor="val_loss"),
+            EarlyStopping(monitor="val_loss", patience=4),
         ],
         **trainer_config,
     )
 
     trainer.fit(model=model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     test_result = trainer.test(model=model, dataloaders=test_loader)
+
+    mlflow.end_run()
 
     return test_result[0]["test_loss"]

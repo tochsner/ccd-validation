@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:9b5d5c47163f8aceaaec8a56af7ad91132a37bb9839bb9014788790633b92a48"
+content_hash = "sha256:da8e91d22b8a7cd90d89aba802bc36a11d785378491817ed0306804f71769a76"
 
 [[metadata.targets]]
 requires_python = "==3.11.*"
@@ -296,6 +296,16 @@ groups = ["default"]
 files = [
     {file = "blinker-1.9.0-py3-none-any.whl", hash = "sha256:ba0efaa9080b619ff2f3459d1d500c57bddea4a6b424b60a91141db6fd2f08bc"},
     {file = "blinker-1.9.0.tar.gz", hash = "sha256:b4ce2265a7abece45e7cc896e98dbebe6cead56bcf805a3d23136d145f5445bf"},
+]
+
+[[package]]
+name = "bottle"
+version = "0.13.2"
+summary = "Fast and simple WSGI-framework for small web-applications."
+groups = ["default"]
+files = [
+    {file = "bottle-0.13.2-py2.py3-none-any.whl", hash = "sha256:27569ab8d1332fbba3e400b3baab2227ab4efb4882ff147af05a7c00ed73409c"},
+    {file = "bottle-0.13.2.tar.gz", hash = "sha256:e53803b9d298c7d343d00ba7d27b0059415f04b9f6f40b8d58b5bf914ba9d348"},
 ]
 
 [[package]]
@@ -2091,6 +2101,23 @@ dependencies = [
 files = [
     {file = "optuna-4.1.0-py3-none-any.whl", hash = "sha256:1763856b01c9238594d9d21db92611aac9980e9a6300bd658a7c6464712c704e"},
     {file = "optuna-4.1.0.tar.gz", hash = "sha256:b364e87a2038f9946c5e2770c130597538aac528b4a82c1cab5267f337ea7679"},
+]
+
+[[package]]
+name = "optuna-dashboard"
+version = "0.17.0"
+requires_python = ">=3.8"
+summary = "Real-time dashboard for Optuna"
+groups = ["default"]
+dependencies = [
+    "bottle>=0.13.0",
+    "optuna>=3.1.0",
+    "packaging",
+    "scikit-learn",
+]
+files = [
+    {file = "optuna_dashboard-0.17.0-py3-none-any.whl", hash = "sha256:a8e19696039ed25554f8be13c4ea2b80f99cdd444b9989222c4bdbe5036bb447"},
+    {file = "optuna_dashboard-0.17.0.tar.gz", hash = "sha256:59866b7c5322153cdf777cba701e5ca1d1142f1cff9974976d2295c4c01d79dc"},
 ]
 
 [[package]]
