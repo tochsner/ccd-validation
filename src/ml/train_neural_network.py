@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Any, Optional
 
 import lightning.pytorch as pl
 import torch
-from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
 import mlflow
 from torch.utils.data import DataLoader, Dataset
 
@@ -24,12 +24,23 @@ def train_neural_network(
     optimizer_config: dict[str, Any],
     model_config: dict[str, Any],
     trainer_config: dict[str, Any],
+    mlflow_experiment_name: Optional[str] = None,
 ):
     """Trains a neural network."""
     set_seed()
 
     mlflow.pytorch.autolog()
-
+    if mlflow_experiment_name:
+        mlflow.set_experiment(mlflow_experiment_name)
+    mlflow.log_params({
+        **splitting_config,
+        **dataloader_config,
+        **optimizer_config,
+        "optimizer_name": optimizer_config["name"],
+        **model_config,
+        "model_name": model_config["name"],
+        **trainer_config,
+    })
     torch.set_default_dtype(torch.float32)
 
     train_dataset, val_dataset, test_dataset = create_data_splits(
@@ -62,9 +73,12 @@ def train_neural_network(
                 filename="{epoch:02d}-{val_loss:.2f}",
                 save_top_k=1,
             ),
+            EarlyStopping(monitor="val_loss"),
         ],
         **trainer_config,
     )
 
     trainer.fit(model=model, train_dataloaders=train_loader, val_dataloaders=val_loader)
-    trainer.test(model=model, dataloaders=test_loader)
+    test_result = trainer.test(model=model, dataloaders=test_loader)
+
+    return test_result[0]["test_loss"]

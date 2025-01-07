@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:64e5529c3bd941e5956e06a2cb3137a48e80ba8f42f6c8df01208ab14a534f81"
+content_hash = "sha256:9b5d5c47163f8aceaaec8a56af7ad91132a37bb9839bb9014788790633b92a48"
 
 [[metadata.targets]]
 requires_python = "==3.11.*"
@@ -2071,6 +2071,26 @@ dependencies = [
 files = [
     {file = "opentelemetry_semantic_conventions-0.50b0-py3-none-any.whl", hash = "sha256:e87efba8fdb67fb38113efea6a349531e75ed7ffc01562f65b802fcecb5e115e"},
     {file = "opentelemetry_semantic_conventions-0.50b0.tar.gz", hash = "sha256:02dc6dbcb62f082de9b877ff19a3f1ffaa3c306300fa53bfac761c4567c83d38"},
+]
+
+[[package]]
+name = "optuna"
+version = "4.1.0"
+requires_python = ">=3.8"
+summary = "A hyperparameter optimization framework"
+groups = ["default"]
+dependencies = [
+    "PyYAML",
+    "alembic>=1.5.0",
+    "colorlog",
+    "numpy",
+    "packaging>=20.0",
+    "sqlalchemy>=1.4.2",
+    "tqdm",
+]
+files = [
+    {file = "optuna-4.1.0-py3-none-any.whl", hash = "sha256:1763856b01c9238594d9d21db92611aac9980e9a6300bd658a7c6464712c704e"},
+    {file = "optuna-4.1.0.tar.gz", hash = "sha256:b364e87a2038f9946c5e2770c130597538aac528b4a82c1cab5267f337ea7679"},
 ]
 
 [[package]]

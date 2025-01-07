@@ -43,5 +43,8 @@ validation:
 train:
 	python src/ml/run.py
 
+tune:
+	python src/ml/hyperparam_tuning.py
+
 ml-flow-ui:
 	mlflow ui

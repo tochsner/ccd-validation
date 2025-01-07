@@ -30,5 +30,9 @@ def optimizer_factory(
     match name:
         case "adam":
             return partial(optim.Adam, **kwargs)
+        case "adamw":
+            return partial(optim.AdamW, **kwargs)
+        case "rmsprop":
+            return partial(optim.RMSprop, **kwargs)
         case _:
             raise ValueError(f"Unknown optimizer {name}.")
