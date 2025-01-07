@@ -18,7 +18,7 @@ from src.datasets.load_trees import write_trees_to_file, load_trees_from_file
 OUTPUT_DIR = Path("data/map_data")
 
 MODEL_NAME = "nf-weight-sharing"
-MODELS_PATH = Path("ml_data/models/yule_10_simple_weight_sharing_2024_12_17_20_01_30")
+MODELS_PATH = Path("ml_data/models/yule_10_simple_weight_sharing_tuned_2025_01_07_23_50_21")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 

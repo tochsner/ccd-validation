@@ -15,7 +15,7 @@ CCD1_SAMPLES_DIR = Path("data/ccd1_sample_data")
 OUTPUT_DIR = Path("data/true_tree_density_data")
 
 MODEL_NAME = "nf-weight-sharing"
-MODELS_PATH = Path("ml_data/models/yule_10_simple_weight_sharing_2024_12_17_20_01_30")
+MODELS_PATH = Path("ml_data/models/yule_10_simple_weight_sharing_tuned_2025_01_07_23_50_21")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 
