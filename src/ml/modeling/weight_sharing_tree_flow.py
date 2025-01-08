@@ -7,6 +7,7 @@ from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
 )
 from src.ml.modeling.layers.log_flow_layer import LogFlowLayer
+from src.ml.modeling.layers.inverse_sigmoid_flow_layer import InverseSigmoidFlowLayer
 from src.ml.modeling.normalizing_flow import NormalizingFlow
 
 
@@ -30,7 +31,8 @@ class UnimodalGammaHeightModel(nn.Module):
         self.concentration = nn.Parameter(tensor(0.0))
         self.rate = nn.Parameter(tensor(2.0))
 
-    def forward(self, tree_height, **kwargs):
+    def get_log_likelihood(self, tree_height, **kwargs):
+        # we ensure that we have a mode by forcing the concentration to be greater than 1
         concentration = 1.0 + torch.exp(self.concentration)
         return (
             torch.xlogy(concentration, self.rate)
@@ -45,7 +47,7 @@ class UnimodalGammaHeightModel(nn.Module):
 
     def mode(self):
         concentration = 1.0 + torch.exp(self.concentration)
-        return (concentration - 1.0) * self.rate
+        return float((concentration - 1.0) / self.rate)
 
 
 class WeightSharingTreeFlow(NormalizingFlow):
@@ -57,13 +59,19 @@ class WeightSharingTreeFlow(NormalizingFlow):
         num_blocks: int,
         optimizer: Callable[[Iterator[nn.Parameter]], optim.Optimizer],
         height_model_name: Optional[Literal["gamma"]] = None,
+        encoding: Literal["fractions", "absolute_positive"] = "fractions",
     ):
         self.input_example = input_example
 
         dim = len(input_example["all_observed_clades"])
 
         flow_layers: list[nn.Module] = []
-        flow_layers.append(LogFlowLayer())
+
+        match encoding:
+            case "fractions":
+                flow_layers.append(InverseSigmoidFlowLayer())
+            case "absolute_positive":
+                flow_layers.append(LogFlowLayer())
 
         for _ in range(num_blocks):
             flow_layers.append(
@@ -112,7 +120,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
             )
 
         if self.height_model:
-            height_log_prob = self.height_model.forward(**transformed)
+            height_log_prob = self.height_model.get_log_likelihood(**transformed)
             transformed["log_dj"] += height_log_prob
 
         return {**batch, **transformed}
@@ -178,7 +186,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         log_likelihood = super().get_log_likelihood(batch)
 
         if self.height_model:
-            height_log_prob = self.height_model.forward(**batch)
+            height_log_prob = self.height_model.get_log_likelihood(**batch)
             log_likelihood += height_log_prob
 
         return log_likelihood
@@ -187,6 +195,6 @@ class WeightSharingTreeFlow(NormalizingFlow):
         sample = super().sample(batch)
 
         if self.height_model:
-            sample["tree_height"] = self.height_model.sample((len(batch),))
+            sample["tree_height"] = self.height_model.sample((batch["branch_lengths"].shape[0],))
 
         return sample

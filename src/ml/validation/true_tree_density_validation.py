@@ -14,8 +14,8 @@ from src.ml.preprocessing import preprocessing_factory
 CCD1_SAMPLES_DIR = Path("data/ccd1_sample_data")
 OUTPUT_DIR = Path("data/true_tree_density_data")
 
-MODEL_NAME = "nf-weight-sharing"
-MODELS_PATH = Path("ml_data/models/debug_fraction_encoding_2025_01_08_12_15_38")
+MODEL_NAME = "nf-ws-fraction"
+MODELS_PATH = Path("ml_data/models/yule_10_simple_weight_sharing_fraction_encoding_2025_01_08_15_57_06")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 
@@ -96,6 +96,7 @@ def true_tree_density_validation():
             if len(log_likelihoods) == 0:
                 # this is the first tree, i.e. the true tree
                 sample_batch["branch_lengths"][0] = tree_batch["branch_lengths"][0]
+                sample_batch["tree_height"][0] = tree_batch["tree_height"][0]
 
             model_log_likelihood_batch = (
                 model.get_log_likelihood(sample_batch).detach().numpy()
