@@ -15,7 +15,7 @@ CCD1_SAMPLES_DIR = Path("data/ccd1_sample_data")
 OUTPUT_DIR = Path("data/true_tree_density_data")
 
 MODEL_NAME = "nf-ws-fraction"
-MODELS_PATH = Path("ml_data/models/yule_10_weight_sharing_fraction_2025_01_08_17_10_53")
+MODELS_PATH = Path("ml_data/models/weight_sharing_fraction_yule_10_2025_01_08_18_38_06")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 
