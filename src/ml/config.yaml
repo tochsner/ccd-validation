@@ -1,4 +1,4 @@
-run_name: debug
+run_name: yule_10_weight_sharing_fraction
 
 data_set:
   name: tree_datasets
@@ -12,7 +12,7 @@ preprocessing:
   - name: remove_tree
 
 training:
-    # mlflow_experiment_name: yule_10_weight_sharing_fraction
+    mlflow_experiment_name: yule_10_weight_sharing_fraction
 
     splitting_config:
       train_fraction: 0.7

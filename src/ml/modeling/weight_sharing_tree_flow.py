@@ -38,7 +38,7 @@ class LogNormalHeightModel(nn.Module):
         return torch.distributions.LogNormal(self.mean, self.scale).sample(sample_shape)
 
     def mode(self):
-        return torch.log(self.mean)
+        return torch.exp(self.mean)
 
 
 class WeightSharingTreeFlow(NormalizingFlow):
