@@ -13,7 +13,17 @@ from src.ml.modeling import (
 )
 from src.ml.utils.set_seed import set_seed
 
+from torch.utils.data._utils.collate import default_collate_fn_map
+
+
+def default_collate_fn(batch, **kwargs):
+    return torch.tensor(batch, dtype=torch.float32)
+
+
+default_collate_fn_map[float] = default_collate_fn
+
 torch.set_default_device(torch.device("cpu"))
+torch.set_default_dtype(torch.float32)
 
 
 def train_neural_network(
@@ -32,30 +42,30 @@ def train_neural_network(
     mlflow.pytorch.autolog()
     if mlflow_experiment_name:
         mlflow.set_experiment(mlflow_experiment_name)
-    mlflow.log_params({
-        **splitting_config,
-        **dataloader_config,
-        **optimizer_config,
-        "optimizer_name": optimizer_config["name"],
-        **model_config,
-        "model_name": model_config["name"],
-        **trainer_config,
-    })
-    
-    torch.set_default_dtype(torch.float32)
+    mlflow.log_params(
+        {
+            **splitting_config,
+            **dataloader_config,
+            **optimizer_config,
+            "optimizer_name": optimizer_config["name"],
+            **model_config,
+            "model_name": model_config["name"],
+            **trainer_config,
+        }
+    )
 
     train_dataset, val_dataset, test_dataset = create_data_splits(
         dataset, **splitting_config
     )
 
     train_loader = DataLoader(
-        train_dataset, generator=torch.Generator(device="cpu"), **dataloader_config
+        train_dataset, generator=torch.Generator("cpu"), **dataloader_config
     )
     test_loader = DataLoader(
-        test_dataset, generator=torch.Generator(device="cpu"), **dataloader_config
+        test_dataset, generator=torch.Generator("cpu"), **dataloader_config
     )
     val_loader = DataLoader(
-        val_dataset, generator=torch.Generator(device="cpu"), **dataloader_config
+        val_dataset, generator=torch.Generator("cpu"), **dataloader_config
     )
 
     optimizer = optimizer_factory(**optimizer_config)

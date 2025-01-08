@@ -64,7 +64,7 @@ class AddRelativeCladeInformation(TransformedDataset):
 
             item["clades"] = sorted(observed_clades)
             item["branch_lengths"] = torch.tensor(
-                [min_branch_lengths[clade] for clade in item["clades"]]
+                [min_branch_lengths[clade] for clade in item["clades"]], dtype=torch.float32
             )
             item["tree_height"] = tree_height
 

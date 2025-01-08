@@ -10,7 +10,7 @@ data_set:
 
 preprocessing:
   - name: add_taxa_names
-  - name: add_clade_information
+  - name: add_relative_clade_information
   - name: remove_tree
 
 training:
@@ -23,18 +23,16 @@ training:
     dataloader_config:
       batch_size:
         sampler: choice
-        options: [32, 64, 128, 256, 512]
+        options: [64, 128, 256, 512]
 
       shuffle: true
 
     optimizer_config:
-      name:
-        sampler: choice
-        options: [adam, adamw, rmsprop]
+      name: adamw
       lr:
         sampler: log_uniform
-        min: 0.00001
-        max: 0.1
+        min: 0.0001
+        max: 0.01
       weight_decay:
         sampler: uniform
         min: 0.001
@@ -50,6 +48,14 @@ training:
         sampler: uniform
         min: 0.2
         max: 0.8
+      conditioner_num_layers:
+        sampler: randint
+        min: 1
+        max: 4
+      conditioner_dropout:
+        sampler: uniform
+        min: 0.0
+        max: 0.5
 
     trainer_config:
       max_epochs: 20

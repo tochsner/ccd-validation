@@ -12,17 +12,26 @@ from src.ml.modeling.normalizing_flow import NormalizingFlow
 
 
 class Conditioner(nn.Module):
-    def __init__(self, dim: int):
+    def __init__(self, dim: int, num_layers: int = 2, dropout: float = 0.5):
         super().__init__()
-        self.linear_1 = nn.Linear(dim, dim)
-        self.linear_2 = nn.Linear(dim, dim)
-        self.dropout = nn.Dropout(p=0.3)
+        self.layers = nn.ModuleList()
+
+        for _ in range(num_layers):
+            self.layers.append(
+                nn.Sequential(
+                    nn.Linear(dim, dim),
+                    nn.Dropout(dropout),
+                )
+            )
 
     def forward(self, z):
-        res = self.linear_1(z)
-        res = F.relu(res)
-        res = self.linear_2(res)
-        return z + res
+        for i, layer in enumerate(self.layers):
+            z = z + layer(z)
+
+            if i < len(self.layers) - 1:
+                z = F.relu(z)
+
+        return z
 
 
 class LogNormalHeightModel(nn.Module):
@@ -32,7 +41,9 @@ class LogNormalHeightModel(nn.Module):
         self.scale = nn.Parameter(tensor(1.0))
 
     def get_log_likelihood(self, tree_height, **kwargs):
-        return torch.distributions.LogNormal(self.mean, self.scale).log_prob(tree_height)
+        return torch.distributions.LogNormal(self.mean, self.scale).log_prob(
+            tree_height
+        )
 
     def sample(self, sample_shape):
         return torch.distributions.LogNormal(self.mean, self.scale).sample(sample_shape)
@@ -51,6 +62,8 @@ class WeightSharingTreeFlow(NormalizingFlow):
         optimizer: Callable[[Iterator[nn.Parameter]], optim.Optimizer],
         height_model_name: Optional[Literal["gamma"]] = None,
         encoding: Literal["fractions", "absolute_positive"] = "fractions",
+        conditioner_num_layers: int = 2,
+        conditioner_dropout: float = 0.5,
     ):
         self.input_example = input_example
 
@@ -68,8 +81,10 @@ class WeightSharingTreeFlow(NormalizingFlow):
             flow_layers.append(
                 UnconditionalMaskedAffineFlowLayer(
                     mask=(torch.FloatTensor(dim).uniform_() < mask_fraction).float(),
-                    translate=Conditioner(dim),
-                    scale=Conditioner(dim),
+                    translate=Conditioner(
+                        dim, conditioner_num_layers, conditioner_dropout
+                    ),
+                    scale=Conditioner(dim, conditioner_num_layers, conditioner_dropout),
                 )
             )
 
@@ -83,15 +98,21 @@ class WeightSharingTreeFlow(NormalizingFlow):
             torch.tensor(input_example["all_observed_clades"]),
         )
 
-        self.observed_clade_indices = {
-            int(clade): i for i, clade in enumerate(sorted(self.all_observed_clades))
-        }
+        self.sorted_observed_clades = torch.tensor(sorted(self.all_observed_clades))
 
         match height_model_name:
             case "lognormal":
                 self.height_model = LogNormalHeightModel()
             case _:
                 self.height_model = None
+
+    def _repace_with_clade_indices(self, clades):
+        return (
+            (clades.unsqueeze(-1) == self.sorted_observed_clades)
+            .to(torch.long)
+            .argmax(dim=-1, keepdim=True)
+            .squeeze(-1)
+        )
 
     def forward(self, batch):
         # transforms an input into latent space
@@ -109,7 +130,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
                 torch.nan_to_num(result["log_dj"] * batch_mask),
                 dim=list(range(1, result["log_dj"].dim())),
             )
-        
+
         return {**batch, **transformed}
 
     def inverse(self, batch):
@@ -131,9 +152,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         batch_size = len(batch["branch_lengths"])
         num_clades = len(self.all_observed_clades)
 
-        indices_to_mask = torch.stack(batch["clades"]).T.apply_(
-            lambda x: self.observed_clade_indices.get(x, 0)
-        )
+        indices_to_mask = self._repace_with_clade_indices(torch.stack(batch["clades"]).T)
         batch_mask = torch.zeros(batch_size, num_clades).scatter_(
             1, indices_to_mask, 1.0
         )
@@ -144,9 +163,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         batch_size = len(batch["branch_lengths"])
         num_clades = len(self.all_observed_clades)
 
-        indices_to_populate = torch.stack(batch["clades"]).T.apply_(
-            lambda x: self.observed_clade_indices.get(x, 0)
-        )
+        indices_to_populate = self._repace_with_clade_indices(torch.stack(batch["clades"]).T)
         encoded_branch_lengths = torch.zeros(batch_size, num_clades).scatter_(
             1, indices_to_populate, batch["branch_lengths"]
         )
@@ -158,9 +175,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         }
 
     def decode(self, batch) -> dict:
-        populate_indices = torch.stack(batch["clades"]).T.apply_(
-            lambda x: self.observed_clade_indices.get(x, 0)
-        )
+        populate_indices = self._repace_with_clade_indices(torch.stack(batch["clades"]).T)
         branch_lengths = torch.gather(batch["z"], 1, populate_indices)
 
         return {
@@ -182,6 +197,8 @@ class WeightSharingTreeFlow(NormalizingFlow):
         sample = super().sample(batch)
 
         if self.height_model:
-            sample["tree_height"] = self.height_model.sample((batch["branch_lengths"].shape[0],))
+            sample["tree_height"] = self.height_model.sample(
+                (batch["branch_lengths"].shape[0],)
+            )
 
         return sample
