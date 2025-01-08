@@ -12,18 +12,16 @@ from src.ml.modeling import (
     optimizer_factory,
 )
 from src.ml.utils.set_seed import set_seed
-
-from torch.utils.data._utils.collate import default_collate_fn_map
-
-
-def default_collate_fn(batch, **kwargs):
-    return torch.tensor(batch, dtype=torch.float32)
+from src.ml.utils.mps_setup import setup_mps
 
 
-default_collate_fn_map[float] = default_collate_fn
+DEVICE = "cpu"
 
-torch.set_default_device(torch.device("cpu"))
-torch.set_default_dtype(torch.float32)
+if DEVICE == "mps":
+    setup_mps()
+
+
+torch.set_default_device(DEVICE)
 
 
 def train_neural_network(
@@ -59,13 +57,13 @@ def train_neural_network(
     )
 
     train_loader = DataLoader(
-        train_dataset, generator=torch.Generator("cpu"), **dataloader_config
+        train_dataset, generator=torch.Generator(DEVICE), **dataloader_config
     )
     test_loader = DataLoader(
-        test_dataset, generator=torch.Generator("cpu"), **dataloader_config
+        test_dataset, generator=torch.Generator(DEVICE), **dataloader_config
     )
     val_loader = DataLoader(
-        val_dataset, generator=torch.Generator("cpu"), **dataloader_config
+        val_dataset, generator=torch.Generator(DEVICE), **dataloader_config
     )
 
     optimizer = optimizer_factory(**optimizer_config)
@@ -76,7 +74,7 @@ def train_neural_network(
     )
 
     trainer = pl.Trainer(
-        accelerator="cpu",
+        accelerator=DEVICE,
         callbacks=[
             ModelCheckpoint(
                 monitor="val_loss",

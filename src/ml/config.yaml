@@ -19,7 +19,7 @@ training:
       test_fraction: 0.15
 
     dataloader_config:
-      batch_size: 128
+      batch_size: 512
       shuffle: true
 
     optimizer_config:
