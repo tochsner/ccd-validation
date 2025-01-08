@@ -25,29 +25,20 @@ class Conditioner(nn.Module):
         return z + res
 
 
-class UnimodalGammaHeightModel(nn.Module):
+class LogNormalHeightModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.concentration = nn.Parameter(tensor(0.0))
-        self.rate = nn.Parameter(tensor(2.0))
+        self.mean = nn.Parameter(tensor(-2.0))
+        self.scale = nn.Parameter(tensor(1.0))
 
     def get_log_likelihood(self, tree_height, **kwargs):
-        # we ensure that we have a mode by forcing the concentration to be greater than 1
-        concentration = 1.0 + torch.exp(self.concentration)
-        return (
-            torch.xlogy(concentration, self.rate)
-            + torch.xlogy(concentration - 1, tree_height)
-            - self.rate * tree_height
-            - torch.lgamma(concentration)
-        )
+        return torch.distributions.LogNormal(self.mean, self.scale).log_prob(tree_height)
 
     def sample(self, sample_shape):
-        concentration = 1.0 + torch.exp(self.concentration)
-        return torch.distributions.Gamma(concentration, self.rate).sample(sample_shape)
+        return torch.distributions.LogNormal(self.mean, self.scale).sample(sample_shape)
 
     def mode(self):
-        concentration = 1.0 + torch.exp(self.concentration)
-        return float((concentration - 1.0) / self.rate)
+        return torch.log(self.mean)
 
 
 class WeightSharingTreeFlow(NormalizingFlow):
@@ -97,8 +88,8 @@ class WeightSharingTreeFlow(NormalizingFlow):
         }
 
         match height_model_name:
-            case "unimodal_gamma":
-                self.height_model = UnimodalGammaHeightModel()
+            case "lognormal":
+                self.height_model = LogNormalHeightModel()
             case _:
                 self.height_model = None
 
@@ -118,11 +109,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
                 torch.nan_to_num(result["log_dj"] * batch_mask),
                 dim=list(range(1, result["log_dj"].dim())),
             )
-
-        if self.height_model:
-            height_log_prob = self.height_model.get_log_likelihood(**transformed)
-            transformed["log_dj"] += height_log_prob
-
+        
         return {**batch, **transformed}
 
     def inverse(self, batch):

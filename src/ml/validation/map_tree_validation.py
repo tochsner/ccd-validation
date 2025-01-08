@@ -21,7 +21,7 @@ OUTPUT_DIR = Path("data/map_data")
 
 MODEL_NAME = "nf-ws-fraction"
 MODELS_PATH = Path(
-    "ml_data/models/yule_10_simple_weight_sharing_fraction_encoding_2025_01_08_16_21_22"
+    "ml_data/models/yule_10_weight_sharing_fraction_2025_01_08_17_10_53"
 )
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
