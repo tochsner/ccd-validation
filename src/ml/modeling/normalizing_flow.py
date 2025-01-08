@@ -1,9 +1,10 @@
 from abc import ABC
-from typing import Callable, Iterator
+from typing import Callable, Iterator, Literal, Optional
 import torch
 import lightning as pl
 import torch.nn as nn
 from torch import nn, optim
+
 
 
 class NormalizingFlow(ABC, pl.LightningModule):
@@ -37,6 +38,10 @@ class NormalizingFlow(ABC, pl.LightningModule):
             transformed["log_dj"] += torch.sum(
                 result["log_dj"], dim=list(range(1, result["log_dj"].dim()))
             )
+
+        if self.height_model:
+            height_log_prob = self.height_model.forward(**transformed)
+            transformed["log_dj"] += height_log_prob
 
         return {**batch, **transformed}
 

@@ -1,14 +1,13 @@
-from typing import Callable, Iterator
+from typing import Callable, Iterator, Literal, Optional
 import torch
 
 import torch.nn.functional as F
-from torch import nn, optim
+from torch import nn, optim, tensor
 from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
 )
 from src.ml.modeling.layers.log_flow_layer import LogFlowLayer
 from src.ml.modeling.normalizing_flow import NormalizingFlow
-from functools import partial
 
 
 class Conditioner(nn.Module):
@@ -25,6 +24,30 @@ class Conditioner(nn.Module):
         return z + res
 
 
+class UnimodalGammaHeightModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.concentration = nn.Parameter(tensor(0.0))
+        self.rate = nn.Parameter(tensor(2.0))
+
+    def forward(self, tree_height, **kwargs):
+        concentration = 1.0 + torch.exp(self.concentration)
+        return (
+            torch.xlogy(concentration, self.rate)
+            + torch.xlogy(concentration - 1, tree_height)
+            - self.rate * tree_height
+            - torch.lgamma(concentration)
+        )
+
+    def sample(self, sample_shape):
+        concentration = 1.0 + torch.exp(self.concentration)
+        return torch.distributions.Gamma(concentration, self.rate).sample(sample_shape)
+
+    def mode(self):
+        concentration = 1.0 + torch.exp(self.concentration)
+        return (concentration - 1.0) * self.rate
+
+
 class WeightSharingTreeFlow(NormalizingFlow):
 
     def __init__(
@@ -33,6 +56,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         mask_fraction: float,
         num_blocks: int,
         optimizer: Callable[[Iterator[nn.Parameter]], optim.Optimizer],
+        height_model_name: Optional[Literal["gamma"]] = None,
     ):
         self.input_example = input_example
 
@@ -64,6 +88,12 @@ class WeightSharingTreeFlow(NormalizingFlow):
             int(clade): i for i, clade in enumerate(sorted(self.all_observed_clades))
         }
 
+        match height_model_name:
+            case "unimodal_gamma":
+                self.height_model = UnimodalGammaHeightModel()
+            case _:
+                self.height_model = None
+
     def forward(self, batch):
         # transforms an input into latent space
         batch_mask = self.get_batch_mask(batch)
@@ -80,6 +110,10 @@ class WeightSharingTreeFlow(NormalizingFlow):
                 torch.nan_to_num(result["log_dj"] * batch_mask),
                 dim=list(range(1, result["log_dj"].dim())),
             )
+
+        if self.height_model:
+            height_log_prob = self.height_model.forward(**transformed)
+            transformed["log_dj"] += height_log_prob
 
         return {**batch, **transformed}
 
@@ -119,7 +153,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
             lambda x: self.observed_clade_indices.get(x, 0)
         )
         encoded_branch_lengths = torch.zeros(batch_size, num_clades).scatter_(
-            1, indices_to_populate  , batch["branch_lengths"]
+            1, indices_to_populate, batch["branch_lengths"]
         )
 
         return {
@@ -139,3 +173,20 @@ class WeightSharingTreeFlow(NormalizingFlow):
             "branch_lengths": branch_lengths,
             "log_dj": batch["log_dj"],
         }
+
+    def get_log_likelihood(self, batch):
+        log_likelihood = super().get_log_likelihood(batch)
+
+        if self.height_model:
+            height_log_prob = self.height_model.forward(**batch)
+            log_likelihood += height_log_prob
+
+        return log_likelihood
+
+    def sample(self, batch):
+        sample = super().sample(batch)
+
+        if self.height_model:
+            sample["tree_height"] = self.height_model.sample((len(batch),))
+
+        return sample

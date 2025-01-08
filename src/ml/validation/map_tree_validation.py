@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 import yaml
 
-from src.ml.preprocessing.add_clade_information import set_branch_lengths
+from src.ml.preprocessing.add_relative_clade_information import set_relative_branch_lengths
 from src.ml.data.tree_dataset import TreeDataset
 from src.ml.modeling import model_factory, optimizer_factory
 from src.ml.modeling.conditional_tree_flow import ConditionalTreeFlow
@@ -18,7 +18,7 @@ from src.datasets.load_trees import write_trees_to_file, load_trees_from_file
 OUTPUT_DIR = Path("data/map_data")
 
 MODEL_NAME = "nf-weight-sharing"
-MODELS_PATH = Path("ml_data/models/yule_10_simple_weight_sharing_tuned_2025_01_07_23_50_21")
+MODELS_PATH = Path("ml_data/models/debug_fraction_encoding_2025_01_08_12_15_38")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 
@@ -94,7 +94,7 @@ def true_tree_density_validation():
 
         tree = load_trees_from_file(map_tree_file)[0]
 
-        set_branch_lengths(
+        set_relative_branch_lengths(
             tree,
             mean_sample.detach().numpy().tolist(),
             [int(x.detach()) for x in first_and_only_batch["clades"]],
