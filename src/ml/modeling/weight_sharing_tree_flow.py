@@ -8,6 +8,7 @@ from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
 )
 from src.ml.modeling.layers.log_flow_layer import LogFlowLayer
 from src.ml.modeling.layers.inverse_sigmoid_flow_layer import InverseSigmoidFlowLayer
+from src.ml.modeling.layers.sigmoid_flow_layer import SigmoidFlowLayer
 from src.ml.modeling.normalizing_flow import NormalizingFlow
 
 
@@ -152,7 +153,9 @@ class WeightSharingTreeFlow(NormalizingFlow):
         batch_size = len(batch["branch_lengths"])
         num_clades = len(self.all_observed_clades)
 
-        indices_to_mask = self._repace_with_clade_indices(torch.stack(batch["clades"]).T)
+        indices_to_mask = self._repace_with_clade_indices(
+            torch.stack(batch["clades"]).T
+        )
         batch_mask = torch.zeros(batch_size, num_clades).scatter_(
             1, indices_to_mask, 1.0
         )
@@ -163,7 +166,9 @@ class WeightSharingTreeFlow(NormalizingFlow):
         batch_size = len(batch["branch_lengths"])
         num_clades = len(self.all_observed_clades)
 
-        indices_to_populate = self._repace_with_clade_indices(torch.stack(batch["clades"]).T)
+        indices_to_populate = self._repace_with_clade_indices(
+            torch.stack(batch["clades"]).T
+        )
         encoded_branch_lengths = torch.zeros(batch_size, num_clades).scatter_(
             1, indices_to_populate, batch["branch_lengths"]
         )
@@ -175,7 +180,9 @@ class WeightSharingTreeFlow(NormalizingFlow):
         }
 
     def decode(self, batch) -> dict:
-        populate_indices = self._repace_with_clade_indices(torch.stack(batch["clades"]).T)
+        populate_indices = self._repace_with_clade_indices(
+            torch.stack(batch["clades"]).T
+        )
         branch_lengths = torch.gather(batch["z"], 1, populate_indices)
 
         return {
@@ -183,6 +190,11 @@ class WeightSharingTreeFlow(NormalizingFlow):
             "branch_lengths": branch_lengths,
             "log_dj": batch["log_dj"],
         }
+
+    def get_base_log_likelihood(self, batch):
+        return torch.nan_to_num(
+            self.prior.log_prob(batch["z"]) * self.get_batch_mask(batch)
+        ).sum(dim=list(range(1, batch["z"].dim())))
 
     def get_log_likelihood(self, batch):
         log_likelihood = super().get_log_likelihood(batch)

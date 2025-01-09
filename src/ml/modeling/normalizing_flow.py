@@ -1,10 +1,9 @@
 from abc import ABC
-from typing import Callable, Iterator, Literal, Optional
+from typing import Callable, Iterator
 import torch
 import lightning as pl
 import torch.nn as nn
 from torch import nn, optim
-
 
 
 class NormalizingFlow(ABC, pl.LightningModule):
@@ -55,13 +54,14 @@ class NormalizingFlow(ABC, pl.LightningModule):
 
         return self.decode({**batch, **transformed})
 
+    def get_base_log_likelihood(self, batch):
+        return self.prior.log_prob(batch["z"]).sum(dim=list(range(1, batch["z"].dim())))
+
     def get_log_likelihood(self, batch):
         transformed = self.forward(batch)
-
-        z = transformed["z"]
         log_dj = transformed["log_dj"]
 
-        log_pz = self.prior.log_prob(z).sum(dim=list(range(1, z.dim())))
+        log_pz = self.get_base_log_likelihood(transformed)
         log_px = log_dj + log_pz
 
         return log_px
@@ -69,10 +69,13 @@ class NormalizingFlow(ABC, pl.LightningModule):
     def get_loss(self, batch):
         return -self.get_log_likelihood(batch).mean()
 
+    def sample_from_base(self, shape):
+        return self.prior.sample(shape)
+
     def sample(self, batch):
         transformed = self.encode(batch)
 
-        prior_sample = self.prior.sample(transformed["z"].shape)
+        prior_sample = self.sample_from_base(transformed["z"].shape)
         transformed["z"] = prior_sample
 
         return self.inverse({**batch, **transformed})

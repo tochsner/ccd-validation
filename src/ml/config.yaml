@@ -1,4 +1,4 @@
-run_name: debug_mps
+run_name: debug
 
 data_set:
   name: tree_datasets
