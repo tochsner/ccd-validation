@@ -2,6 +2,7 @@ from typing import Callable, Iterator, Literal, Optional
 import torch
 
 from torch import nn, optim, tensor
+from src.ml.modeling.layers.batch_norm_flow_layer import BatchNormFlowLayer
 from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
 )
@@ -86,7 +87,6 @@ class WeightSharingTreeFlow(NormalizingFlow):
 
         for _ in range(num_blocks):
             mask = (torch.FloatTensor(dim).uniform_() < mask_fraction).float()
-            
             flow_layers.append(
                 UnconditionalMaskedAffineFlowLayer(
                     mask,
@@ -96,6 +96,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
                     scale=Conditioner(dim, conditioner_num_layers, conditioner_dropout),
                 )
             )
+            flow_layers.append(BatchNormFlowLayer(dim, mask))
 
         super().__init__(
             optimizer,

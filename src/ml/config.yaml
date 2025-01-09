@@ -1,9 +1,9 @@
-run_name: tuned_weight_sharing_fraction_yule_10
+run_name: debug_batch_norm
 
 data_set:
   name: tree_datasets
   directory: data/mcmc_runs
-  glob: "yule-10_*.trees"
+  glob: "yule-10_5.trees"
   max_files: 100
 
 preprocessing:
@@ -12,14 +12,14 @@ preprocessing:
   - name: remove_tree
 
 training:
-    mlflow_experiment_name: tuned_weight_sharing_fraction_yule_10
+    # mlflow_experiment_name: tuned_weight_sharing_fraction_yule_10
 
     splitting_config:
       train_fraction: 0.7
       test_fraction: 0.15
 
     dataloader_config:
-      batch_size: 256
+      batch_size: 512
       shuffle: true
 
     optimizer_config:

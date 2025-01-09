@@ -6,7 +6,7 @@ from src.ml.modeling.layers.flow_layers import FlowLayer
 
 class BatchNormFlowLayer(FlowLayer):
 
-    def __init__(self, mask: Tensor, dim: int, momentum: float = 0.95):
+    def __init__(self, dim: int, mask, momentum: float = 0.8):
         super().__init__()
 
         self.register_buffer("mask", mask)
@@ -23,34 +23,47 @@ class BatchNormFlowLayer(FlowLayer):
             batch_mask = torch.ones_like(z)
 
         if self.training:
-            batch_mean = torch.nan_to_num(
-                (self.mask * batch_mask * z).sum(dim=0)
-                / (self.mask * batch_mask).sum(dim=0)
-            )
-            batch_std = torch.nan_to_num(
-                (self.mask * batch_mask * (z - batch_mean) ** 2).sum(dim=0)
-                / (self.mask * batch_mask).sum(dim=0)
-            ).sqrt()
+            with torch.no_grad():
+                batch_mean = (
+                    self.mask
+                    * torch.nan_to_num(
+                        (batch_mask * z).sum(dim=0) / batch_mask.sum(dim=0)
+                    )
+                    + (1 - self.mask) * self.running_mean
+                )
+                batch_std = (
+                    self.mask
+                    * torch.nan_to_num(
+                        (batch_mask * (z - batch_mean) ** 2).sum(dim=0)
+                        / batch_mask.sum(dim=0)
+                    ).sqrt()
+                    + (1 - self.mask) * self.running_std
+                )
 
-            self.running_mean.data = batch_mean + self.running_mean * (
-                1 - self.momentum
-            )
-            self.running_std.data = (
-                batch_std * self.momentum * self.mask
-                + self.running_std * (1 - self.momentum)
-            )
+                # we sometimes have costant features
+                batch_std = torch.where(batch_std > 0, batch_std, 1.0)
 
-            if (self.running_mean == torch.inf).any():
-                raise ValueError("NaN")
+                self.running_mean.data = (
+                    self.momentum * batch_mean + (1 - self.momentum) * self.running_mean
+                )
+                self.running_std.data = (
+                    self.momentum * batch_std + (1 - self.momentum) * self.running_std
+                )
+        else:
+            batch_mean = self.running_mean
+            batch_std = self.running_std
 
-            if self.running_std.min() < 0:
-                raise ValueError("NaN")
+        z = (z - batch_mean) / batch_std
+        log_det = -batch_std.log().unsqueeze(0).repeat(len(z), 1)
 
-            if (self.running_std == torch.inf).any():
-                raise ValueError("NaN")
+        if (self.running_mean == torch.inf).any():
+            raise ValueError("NaN")
 
-        z = (z - self.running_mean) / self.running_std
-        log_det = 0.0 * -self.running_std.log()
+        if self.running_std.min() < 0:
+            raise ValueError("NaN")
+
+        if (self.running_std == torch.inf).any():
+            raise ValueError("NaN")
 
         if (z == torch.inf).any():
             raise ValueError("NaN")
@@ -65,14 +78,6 @@ class BatchNormFlowLayer(FlowLayer):
 
     def inverse(self, z, **kwargs):
         # transforms latent space into flow space
-
-        if self.training:
-            self.running_std.data = 1 / z.std(
-                dim=0
-            ) * self.momentum + self.running_std * (1 - self.momentum)
-            self.running_mean.data = (
-                -z.mean(dim=0) * self.running_std
-            ) * self.momentum + self.running_mean * (1 - self.momentum)
 
         z = z * self.running_std + self.running_mean
         log_det = self.running_std.log()
