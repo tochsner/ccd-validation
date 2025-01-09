@@ -63,7 +63,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         height_model_name: Optional[Literal["gamma"]] = None,
         encoding: Literal["fractions", "absolute_positive"] = "fractions",
         conditioner_num_layers: int = 2,
-        conditioner_dropout: float = 0.5,
+        conditioner_dropout: float = 0.25,
     ):
         self.input_example = input_example
 

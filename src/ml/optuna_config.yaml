@@ -21,9 +21,7 @@ training:
       test_fraction: 0.15
 
     dataloader_config:
-      batch_size:
-        sampler: choice
-        options: [64, 128, 256, 512]
+      batch_size: 512
 
       shuffle: true
 
