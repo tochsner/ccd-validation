@@ -192,8 +192,8 @@ class WeightSharingTreeFlow(NormalizingFlow):
         }
 
     def get_base_log_likelihood(self, batch):
-        return torch.nan_to_num(
-            self.prior.log_prob(batch["z"]) * self.get_batch_mask(batch)
+        return (
+            super().get_base_log_likelihood(batch) * self.get_batch_mask(batch)
         ).sum(dim=list(range(1, batch["z"].dim())))
 
     def get_log_likelihood(self, batch):
