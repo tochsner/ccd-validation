@@ -2,6 +2,7 @@ from typing import Callable, Iterator, Literal, Optional
 import torch
 
 from torch import nn, optim, tensor
+from src.ml.modeling.layers.act_norm_flow_layer import ActNormFlowLayer
 from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
 )
@@ -25,12 +26,15 @@ class Conditioner(nn.Module):
                     )
                 )
             else:
+                # we don't apply relu or dropout to the last layer
                 self.layers.append(
-                    nn.Sequential(
-                        nn.Linear(dim, dim),
-                        nn.Dropout(dropout),
-                    )
+                    nn.Linear(dim, dim),
                 )
+
+                # we initialize the last layer with 0 weights such that it
+                # is the identity at the beginning (see the glow paper)
+                self.layers[-1].weight.data.fill_(0)
+                self.layers[-1].bias.data.fill_(0)
 
     def forward(self, z):
         return z + self.layers(z)
@@ -82,9 +86,11 @@ class WeightSharingTreeFlow(NormalizingFlow):
                 flow_layers.append(LogFlowLayer())
 
         for _ in range(num_blocks):
+            mask = (torch.FloatTensor(dim).uniform_() < mask_fraction).float()
+            
             flow_layers.append(
                 UnconditionalMaskedAffineFlowLayer(
-                    mask=(torch.FloatTensor(dim).uniform_() < mask_fraction).float(),
+                    mask,
                     translate=Conditioner(
                         dim, conditioner_num_layers, conditioner_dropout
                     ),
@@ -127,13 +133,16 @@ class WeightSharingTreeFlow(NormalizingFlow):
         for flow in self.flows:
             transformed["z"] = transformed["z"] * batch_mask
 
-            result = flow.forward(**transformed)
+            result = flow.forward(**transformed, additional_mask=batch_mask)
 
             transformed["z"] = torch.nan_to_num(result["z"] * batch_mask)
             transformed["log_dj"] += torch.sum(
                 torch.nan_to_num(result["log_dj"] * batch_mask),
                 dim=list(range(1, result["log_dj"].dim())),
             )
+
+            if (transformed["z"] == torch.inf).any():
+                raise ValueError("NaN")
 
         return {**batch, **transformed}
 
@@ -146,7 +155,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         for flow in self.flows[::-1]:
             transformed["z"] = transformed["z"] * batch_mask
 
-            result = flow.inverse(**transformed)
+            result = flow.inverse(**transformed, additional_mask=batch_mask)
 
             transformed["z"] = torch.nan_to_num(result["z"] * batch_mask)
 
