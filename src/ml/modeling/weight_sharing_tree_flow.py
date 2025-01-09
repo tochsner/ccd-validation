@@ -12,35 +12,36 @@ from src.ml.modeling.normalizing_flow import NormalizingFlow
 
 
 class Conditioner(nn.Module):
-    def __init__(self, dim: int, num_layers: int = 2, dropout: float = 0.5):
+    def __init__(self, dim: int, num_layers: int = 2, dropout: float = 0.1):
         super().__init__()
-        self.layers = nn.ModuleList()
+        self.layers = nn.Sequential()
 
-        for _ in range(num_layers - 1):
-            self.layers.append(
-                nn.Sequential(
-                    nn.Linear(dim, dim),
-                    nn.Dropout(dropout),
+        for i in range(num_layers):
+            if i < num_layers - 1:
+                self.layers.append(
+                    nn.Sequential(
+                        nn.Linear(dim, dim),
+                        nn.ReLU(),
+                        nn.Dropout(dropout),
+                    )
                 )
-            )
+            else:
+                self.layers.append(
+                    nn.Sequential(
+                        nn.Linear(dim, dim),
+                        nn.Dropout(dropout),
+                    )
+                )
 
     def forward(self, z):
-        residual = z
-
-        for i, layer in enumerate(self.layers):
-            residual = layer(residual)
-            
-            if i < len(self.layers) - 1:
-                residual = F.relu(residual)
-
-        return z + residual
+        return z + self.layers(z)
 
 
 class LogNormalHeightModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.mean = nn.Parameter(tensor(-2.0))
-        self.log_scale = nn.Parameter(tensor(1.0))
+        self.log_scale = nn.Parameter(tensor(0.5))
 
     def get_log_likelihood(self, tree_height, **kwargs):
         return torch.distributions.LogNormal(self.mean, self.log_scale.exp()).log_prob(
