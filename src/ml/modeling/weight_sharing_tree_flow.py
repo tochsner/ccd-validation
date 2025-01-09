@@ -1,7 +1,6 @@
 from typing import Callable, Iterator, Literal, Optional
 import torch
 
-import torch.nn.functional as F
 from torch import nn, optim, tensor
 from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
@@ -12,7 +11,7 @@ from src.ml.modeling.normalizing_flow import NormalizingFlow
 
 
 class Conditioner(nn.Module):
-    def __init__(self, dim: int, num_layers: int = 2, dropout: float = 0.1):
+    def __init__(self, dim: int, num_layers: int = 2, dropout: float = 0.25):
         super().__init__()
         self.layers = nn.Sequential()
 

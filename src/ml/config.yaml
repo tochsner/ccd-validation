@@ -33,6 +33,7 @@ training:
       mask_fraction: 0.3
       height_model_name: lognormal
       encoding: fractions
+      conditioner_dropout: 0.0
 
     trainer_config:
       max_epochs: 20
