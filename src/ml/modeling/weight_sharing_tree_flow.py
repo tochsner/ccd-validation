@@ -8,7 +8,6 @@ from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
 )
 from src.ml.modeling.layers.log_flow_layer import LogFlowLayer
 from src.ml.modeling.layers.inverse_sigmoid_flow_layer import InverseSigmoidFlowLayer
-from src.ml.modeling.layers.sigmoid_flow_layer import SigmoidFlowLayer
 from src.ml.modeling.normalizing_flow import NormalizingFlow
 
 
@@ -17,7 +16,7 @@ class Conditioner(nn.Module):
         super().__init__()
         self.layers = nn.ModuleList()
 
-        for _ in range(num_layers):
+        for _ in range(num_layers - 1):
             self.layers.append(
                 nn.Sequential(
                     nn.Linear(dim, dim),
@@ -26,28 +25,32 @@ class Conditioner(nn.Module):
             )
 
     def forward(self, z):
+        residual = z
+
         for i, layer in enumerate(self.layers):
-            z = z + layer(z)
-
+            residual = layer(residual)
+            
             if i < len(self.layers) - 1:
-                z = F.relu(z)
+                residual = F.relu(residual)
 
-        return z
+        return z + residual
 
 
 class LogNormalHeightModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.mean = nn.Parameter(tensor(-2.0))
-        self.scale = nn.Parameter(tensor(1.0))
+        self.log_scale = nn.Parameter(tensor(1.0))
 
     def get_log_likelihood(self, tree_height, **kwargs):
-        return torch.distributions.LogNormal(self.mean, self.scale).log_prob(
+        return torch.distributions.LogNormal(self.mean, self.log_scale.exp()).log_prob(
             tree_height
         )
 
     def sample(self, sample_shape):
-        return torch.distributions.LogNormal(self.mean, self.scale).sample(sample_shape)
+        return torch.distributions.LogNormal(self.mean, self.log_scale.exp()).sample(
+            sample_shape
+        )
 
     def mode(self):
         return torch.exp(self.mean)
@@ -192,9 +195,12 @@ class WeightSharingTreeFlow(NormalizingFlow):
         }
 
     def get_base_log_likelihood(self, batch):
-        return (
-            super().get_base_log_likelihood(batch) * self.get_batch_mask(batch)
-        ).sum(dim=list(range(1, batch["z"].dim())))
+        complete_log_likelihood = self.prior.log_prob(batch["z"])
+        masked_log_likelihood = complete_log_likelihood * self.get_batch_mask(batch)
+        log_likelihood_per_batch = masked_log_likelihood.sum(
+            dim=list(range(1, batch["z"].dim()))
+        )
+        return log_likelihood_per_batch
 
     def get_log_likelihood(self, batch):
         log_likelihood = super().get_log_likelihood(batch)
