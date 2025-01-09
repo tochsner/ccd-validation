@@ -29,7 +29,7 @@ training:
     
     model_config:
       name: weight_sharing_tree_flow
-      num_blocks: 8
+      num_blocks: 2
       mask_fraction: 0.3
       height_model_name: lognormal
       encoding: fractions

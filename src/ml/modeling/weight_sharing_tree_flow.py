@@ -86,7 +86,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
             case "absolute_positive":
                 flow_layers.append(LogFlowLayer())
 
-        for i in range(num_blocks):
+        for _ in range(num_blocks):
             mask = (torch.FloatTensor(dim).uniform_() < mask_fraction).float()
             flow_layers.append(
                 UnconditionalMaskedAffineFlowLayer(
@@ -97,7 +97,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
                     scale=Conditioner(dim, conditioner_num_layers, conditioner_dropout),
                 )
             )
-
+        
         flow_layers.append(SigmoidFlowLayer())
 
         super().__init__(
