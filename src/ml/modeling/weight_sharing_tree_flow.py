@@ -2,6 +2,7 @@ from typing import Callable, Iterator, Literal, Optional
 import torch
 
 from torch import nn, optim, tensor
+from src.ml.modeling.layers.sigmoid_flow_layer import SigmoidFlowLayer
 from src.ml.modeling.layers.batch_norm_flow_layer import BatchNormFlowLayer
 from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
@@ -85,7 +86,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
             case "absolute_positive":
                 flow_layers.append(LogFlowLayer())
 
-        for _ in range(num_blocks):
+        for i in range(num_blocks):
             mask = (torch.FloatTensor(dim).uniform_() < mask_fraction).float()
             flow_layers.append(
                 UnconditionalMaskedAffineFlowLayer(
@@ -96,7 +97,8 @@ class WeightSharingTreeFlow(NormalizingFlow):
                     scale=Conditioner(dim, conditioner_num_layers, conditioner_dropout),
                 )
             )
-            flow_layers.append(BatchNormFlowLayer(dim, mask))
+
+        flow_layers.append(SigmoidFlowLayer())
 
         super().__init__(
             optimizer,
@@ -115,6 +117,9 @@ class WeightSharingTreeFlow(NormalizingFlow):
                 self.height_model = LogNormalHeightModel()
             case _:
                 self.height_model = None
+
+        self.log_alpha = nn.Parameter(torch.randn(dim))
+        self.log_beta = nn.Parameter(torch.randn(dim))
 
     def _repace_with_clade_indices(self, clades):
         return (
@@ -204,11 +209,16 @@ class WeightSharingTreeFlow(NormalizingFlow):
         }
 
     def get_base_log_likelihood(self, batch):
-        complete_log_likelihood = self.prior.log_prob(batch["z"])
-        masked_log_likelihood = complete_log_likelihood * self.get_batch_mask(batch)
+        base_distribution = torch.distributions.Beta(
+            self.log_alpha.exp(), self.log_beta.exp()
+        )
+        complete_log_likelihood = base_distribution.log_prob(batch["z"])
+
+        masked_log_likelihood = torch.nan_to_num(complete_log_likelihood * self.get_batch_mask(batch))
         log_likelihood_per_batch = masked_log_likelihood.sum(
             dim=list(range(1, batch["z"].dim()))
         )
+        
         return log_likelihood_per_batch
 
     def get_log_likelihood(self, batch):
