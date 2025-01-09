@@ -2,7 +2,6 @@ from typing import Callable, Iterator, Literal, Optional
 import torch
 
 from torch import nn, optim, tensor
-from src.ml.modeling.layers.act_norm_flow_layer import ActNormFlowLayer
 from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
 )
