@@ -40,23 +40,27 @@ class Conditioner(nn.Module):
 
 
 class LogNormalHeightModel(nn.Module):
-    def __init__(self):
+    def __init__(self, dim: int):
         super().__init__()
-        self.mean = nn.Parameter(tensor(-2.0))
-        self.log_scale = nn.Parameter(tensor(0.5))
 
-    def get_log_likelihood(self, tree_height, **kwargs):
-        return torch.distributions.LogNormal(self.mean, self.log_scale.exp()).log_prob(
-            tree_height
-        )
+        self.shared = nn.Linear(dim, dim)
+        self.mean = nn.Linear(dim, 1)
+        self.log_scale = nn.Linear(dim, 1)
 
-    def sample(self, sample_shape):
-        return torch.distributions.LogNormal(self.mean, self.log_scale.exp()).sample(
-            sample_shape
-        )
+    def get_log_likelihood(self, z, tree_height, **kwargs):
+        shared = self.shared(z).relu()
+        mean = self.mean(shared).squeeze()
+        scale = self.log_scale(shared).exp().squeeze()
+        return torch.distributions.LogNormal(mean, scale).log_prob(tree_height)
 
-    def mode(self):
-        return torch.exp(self.mean)
+    def sample(self, z, **kwargs):
+        shared = self.shared(z).relu()
+        mean = self.mean(shared).squeeze()
+        scale = self.log_scale(shared).exp().squeeze()
+        return torch.distributions.LogNormal(mean, scale).sample()
+
+    def mode(self, z, **kwargs):
+        return torch.exp(self.mean(z))
 
 
 class WeightSharingTreeFlow(NormalizingFlow):
@@ -110,7 +114,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
 
         match height_model_name:
             case "lognormal":
-                self.height_model = LogNormalHeightModel()
+                self.height_model = LogNormalHeightModel(dim)
             case _:
                 self.height_model = None
 
@@ -207,18 +211,21 @@ class WeightSharingTreeFlow(NormalizingFlow):
     def get_base_log_likelihood(self, batch):
         complete_log_likelihood = self.base_distribution.log_prob(batch["z"])
 
-        masked_log_likelihood = torch.nan_to_num(complete_log_likelihood * self.get_batch_mask(batch))
+        masked_log_likelihood = torch.nan_to_num(
+            complete_log_likelihood * self.get_batch_mask(batch)
+        )
         log_likelihood_per_batch = masked_log_likelihood.sum(
             dim=list(range(1, batch["z"].dim()))
         )
-        
+
         return log_likelihood_per_batch
 
     def get_log_likelihood(self, batch):
         log_likelihood = super().get_log_likelihood(batch)
 
         if self.height_model:
-            height_log_prob = self.height_model.get_log_likelihood(**batch)
+            encoded = self.encode(batch)
+            height_log_prob = self.height_model.get_log_likelihood(**encoded)
             log_likelihood += height_log_prob
 
         return log_likelihood
@@ -227,8 +234,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         sample = super().sample(batch)
 
         if self.height_model:
-            sample["tree_height"] = self.height_model.sample(
-                (batch["branch_lengths"].shape[0],)
-            )
+            encoded = self.encode(batch)
+            sample["tree_height"] = self.height_model.sample(**encoded)
 
         return sample
