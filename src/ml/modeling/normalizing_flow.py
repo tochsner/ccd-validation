@@ -17,7 +17,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
         self.optimizer = optimizer
 
         self.flows = nn.ModuleList(flows)
-        self.prior = torch.distributions.normal.Normal(loc=0.0, scale=1.0)
+        self.base_distribution = torch.distributions.normal.Normal(loc=0.0, scale=1.0)
 
         self.save_hyperparameters()
 
@@ -55,7 +55,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
         return self.decode({**batch, **transformed})
 
     def get_base_log_likelihood(self, batch):
-        return self.prior.log_prob(batch["z"]).sum(dim=list(range(1, batch["z"].dim())))
+        return self.base_distribution.log_prob(batch["z"]).sum(dim=list(range(1, batch["z"].dim())))
 
     def get_log_likelihood(self, batch):
         transformed = self.forward(batch)
@@ -70,7 +70,7 @@ class NormalizingFlow(ABC, pl.LightningModule):
         return -self.get_log_likelihood(batch).mean()
 
     def sample_from_base(self, shape):
-        return self.prior.sample(shape)
+        return self.base_distribution.sample(shape)
 
     def sample(self, batch):
         transformed = self.encode(batch)

@@ -2,8 +2,6 @@ from typing import Callable, Iterator, Literal, Optional
 import torch
 
 from torch import nn, optim, tensor
-from src.ml.modeling.layers.sigmoid_flow_layer import SigmoidFlowLayer
-from src.ml.modeling.layers.batch_norm_flow_layer import BatchNormFlowLayer
 from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
 )
@@ -97,8 +95,6 @@ class WeightSharingTreeFlow(NormalizingFlow):
                     scale=Conditioner(dim, conditioner_num_layers, conditioner_dropout),
                 )
             )
-        
-        flow_layers.append(SigmoidFlowLayer())
 
         super().__init__(
             optimizer,
@@ -209,10 +205,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         }
 
     def get_base_log_likelihood(self, batch):
-        base_distribution = torch.distributions.Beta(
-            self.log_alpha.exp(), self.log_beta.exp()
-        )
-        complete_log_likelihood = base_distribution.log_prob(batch["z"])
+        complete_log_likelihood = self.base_distribution.log_prob(batch["z"])
 
         masked_log_likelihood = torch.nan_to_num(complete_log_likelihood * self.get_batch_mask(batch))
         log_likelihood_per_batch = masked_log_likelihood.sum(
