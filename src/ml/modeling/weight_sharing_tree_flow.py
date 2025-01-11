@@ -111,6 +111,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
             "all_observed_clades",
             torch.tensor(input_example["all_observed_clades"]),
         )
+        self.register_buffer("taxa_names", input_example["taxa_names"])
 
         self.sorted_observed_clades = torch.tensor(sorted(self.all_observed_clades))
 

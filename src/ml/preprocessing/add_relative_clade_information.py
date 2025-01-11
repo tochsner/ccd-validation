@@ -134,7 +134,8 @@ class AddRelativeCladeInformation(TransformedDataset):
         clades: list[int],
         tree_height: float,
     ):
+        taxa_names = get_taxa_names(tree)
         clade_to_branch_lengths = dict(zip(clades, branch_lengths))
         cls._set_relative_branch_lengths(
-            tree.root, get_taxa_names(tree), clade_to_branch_lengths, tree_height
+            tree.root, taxa_names, clade_to_branch_lengths, tree_height
         )

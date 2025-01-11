@@ -21,4 +21,4 @@ def get_tree_height(tree: Tree) -> float:
 
 
 def get_taxa_names(tree: Tree) -> list[str]:
-    return [terminal.name for terminal in tree.get_terminals()]
+    return sorted([terminal.name for terminal in tree.get_terminals()])
