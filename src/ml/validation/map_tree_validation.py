@@ -1,6 +1,5 @@
 from loguru import logger
 from pathlib import Path
-import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
@@ -11,7 +10,6 @@ from src.ml.preprocessing.add_relative_clade_information import (
 )
 from src.ml.data.tree_dataset import TreeDataset
 from src.ml.modeling import model_factory, optimizer_factory
-from src.ml.modeling.conditional_tree_flow import ConditionalTreeFlow
 from src.ml.modeling.weight_sharing_tree_flow import WeightSharingTreeFlow
 from src.ml.preprocessing import preprocessing_factory
 
@@ -21,7 +19,7 @@ OUTPUT_DIR = Path("data/map_data")
 
 MODEL_NAME = "nf-ws-fraction"
 MODELS_PATH = Path(
-    "ml_data/models/tuned_weight_sharing_fraction_yule_10_2025_01_10_00_55_24"
+    "ml_data/models/tuned_weight_sharing_fraction_height_yule_10_2025_01_11_00_02_50"
 )
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
@@ -67,7 +65,7 @@ def _load_model(config, input_example, data_set_name):
     return model
 
 
-def true_tree_density_validation():
+def map_tree_validation():
     config = _load_config()
 
     for map_tree_file in OUTPUT_DIR.glob("*_mrca.trees"):
@@ -90,13 +88,17 @@ def true_tree_density_validation():
         logger.info("Start validation.")
 
         first_and_only_batch = next(iter(data_loader))
-        samples = [
-            model.sample(first_and_only_batch)["branch_lengths"] for _ in range(500)
-        ]
-        samples = torch.cat(samples, dim=0)  # type: ignore
-        mean_sample = torch.mean(samples, dim=0)
+        samples = [model.sample(first_and_only_batch) for _ in range(500)]
 
-        tree_height = model.height_model.mode()
+        sampled_branch_lengths = [sample["branch_lengths"] for sample in samples]
+        sampled_branch_lengths = torch.cat(sampled_branch_lengths, dim=0)  # type: ignore
+
+        sampled_heights = [
+            float(model.height_model.sample(**sample)) for sample in samples
+        ]
+
+        mean_sample = torch.mean(sampled_branch_lengths, dim=0)
+        tree_height = sum(sampled_heights) / len(sampled_heights)
 
         tree = load_trees_from_file(map_tree_file)[0]
 
@@ -113,4 +115,4 @@ def true_tree_density_validation():
 
 
 if __name__ == "__main__":
-    true_tree_density_validation()
+    map_tree_validation()
