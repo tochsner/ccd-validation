@@ -2,6 +2,7 @@ from typing import Callable, Iterator, Literal, Optional
 import torch
 
 from torch import nn, optim, tensor
+from src.ml.modeling.layers.scale_around_mean_flow_layer import ScaleAroundMeanFlowLayer
 from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
 )
@@ -40,29 +41,30 @@ class Conditioner(nn.Module):
 
 
 class LogNormalHeightModel(nn.Module):
-    def __init__(self, dim: int):
+    def __init__(self):
         super().__init__()
+        self.mean = nn.Parameter(tensor(0.0))
+        self.log_scale = nn.Parameter(tensor(0.0))
 
-        self.shared = nn.Linear(dim, dim)
-        self.mean = nn.Linear(dim, 1)
-        self.log_scale = nn.Linear(dim, 1)
+        self.register_buffer("has_been_initialized", tensor(0.0))
 
-    def get_log_likelihood(self, z, tree_height, **kwargs):
-        shared = self.shared(z).relu()
-        mean = self.mean(shared).squeeze()
-        scale = self.log_scale(shared).exp().squeeze()
-        return torch.distributions.LogNormal(mean, scale).log_prob(tree_height)
+    def get_log_likelihood(self, tree_height, **kwargs):
+        if self.training and not self.has_been_initialized:
+            self.mean.data = tree_height.log().mean(dim=0)
+            self.log_scale.data = torch.log(tree_height.log().std(dim=0))
+            self.has_been_initialized.data = tensor(1.0)
+
+        return torch.distributions.LogNormal(self.mean, self.log_scale.exp()).log_prob(
+            tree_height
+        )
 
     def sample(self, z, **kwargs):
-        shared = self.shared(z).relu()
-        mean = self.mean(shared).squeeze()
-        scale = self.log_scale(shared).exp().squeeze()
-        return torch.distributions.LogNormal(mean, scale).sample()
+        return torch.distributions.LogNormal(self.mean, self.log_scale.exp()).sample(
+            (len(z),)
+        )
 
-    def mode(self, z, **kwargs):
-        shared = self.shared(z).relu()
-        mean = self.mean(shared).squeeze()
-        return mean.exp()
+    def mode(self):
+        return torch.exp(self.mean)
 
 
 class WeightSharingTreeFlow(NormalizingFlow):
@@ -87,6 +89,7 @@ class WeightSharingTreeFlow(NormalizingFlow):
         match encoding:
             case "fractions":
                 flow_layers.append(InverseSigmoidFlowLayer())
+                flow_layers.append(ScaleAroundMeanFlowLayer(dim))
             case "absolute_positive":
                 flow_layers.append(LogFlowLayer())
 
@@ -111,13 +114,15 @@ class WeightSharingTreeFlow(NormalizingFlow):
             "all_observed_clades",
             torch.tensor(input_example["all_observed_clades"]),
         )
-        self.register_buffer("taxa_names", input_example["taxa_names"])
+        self.register_buffer(
+            "taxa_names", torch.tensor(list(map(ord, input_example["taxa_names"])))
+        )
 
         self.sorted_observed_clades = torch.tensor(sorted(self.all_observed_clades))
 
         match height_model_name:
             case "lognormal":
-                self.height_model = LogNormalHeightModel(dim)
+                self.height_model = LogNormalHeightModel()
             case _:
                 self.height_model = None
 
@@ -183,6 +188,8 @@ class WeightSharingTreeFlow(NormalizingFlow):
         return batch_mask
 
     def encode(self, batch) -> dict:
+        self._verify_taxa_names(batch)
+
         batch_size = len(batch["branch_lengths"])
         num_clades = len(self.all_observed_clades)
 
@@ -241,3 +248,10 @@ class WeightSharingTreeFlow(NormalizingFlow):
             sample["tree_height"] = self.height_model.sample(**encoded)
 
         return sample
+
+    def _verify_taxa_names(self, batch):
+        encoded_batch_taxa_names = torch.tensor(
+            [[ord(t) for t in ts] for ts in batch["taxa_names"]]
+        ).T
+        if not torch.all(encoded_batch_taxa_names == self.taxa_names):
+            raise ValueError("Taxa names do not match.")

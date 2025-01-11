@@ -5,33 +5,25 @@ from torch.utils.data import DataLoader
 
 import yaml
 
+from src.ml.preprocessing.add_relative_clade_information import AddRelativeCladeInformation
+from src.datasets.load_trees import load_trees_from_file, write_trees_to_file
 from src.ml.data.tree_dataset import TreeDataset
 from src.ml.modeling import model_factory, optimizer_factory
+from src.ml.modeling.conditional_tree_flow import ConditionalTreeFlow
 from src.ml.modeling.weight_sharing_tree_flow import WeightSharingTreeFlow
 from src.ml.preprocessing import preprocessing_factory
 
-CCD1_SAMPLES_DIR = Path("data/ccd1_sample_data")
-OUTPUT_DIR = Path("data/true_tree_density_data")
+SAMPLES_DIR = Path("data/distribution_data")
+OUTPUT_DIR = Path("data/distribution_data")
 
 MODEL_NAME = "nf-ws-fraction"
-MODELS_PATH = Path("ml_data/models/tuned_weight_sharing_fraction_height_scaling_yule_10_2025_01_12_02_29_23")
+MODELS_PATH = Path("ml_data/models/debug_2025_01_12_12_07_06")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 
 def _load_config():
     with open(CONFIG_PATH, "r") as f:
         return yaml.safe_load(f)
-
-
-def _load_ccd1_likelihood_data(tree_file: Path):
-    logger.info("Loading CCD1 likelihood data.")
-
-    likelihood_file = CCD1_SAMPLES_DIR / f"{tree_file.stem}.log"
-
-    with open(likelihood_file, "r") as f:
-        likelihoods = list(map(lambda s: float(s.split(",")[1]), f.readlines()[1:]))
-
-    return likelihoods
 
 
 def _load_data(trees_file: Path):
@@ -70,48 +62,45 @@ def _load_model(config, input_example, data_loader, data_set_name):
     return model
 
 
-def true_tree_density_validation():
+def distribution_validation():
     config = _load_config()
 
-    for tree_file in CCD1_SAMPLES_DIR.glob("*.trees"):
-        if not list((MODELS_PATH / tree_file.stem).glob("*.ckpt")):
+    for tree_file in SAMPLES_DIR.glob("*dirichlet.trees"):
+        dataset_name, run, *_ = tree_file.stem.split("_")
+
+        dataset_name = f"{dataset_name}_{run}"
+
+        if not list((MODELS_PATH / dataset_name).glob("*.ckpt")):
             continue
 
         logger.info(f"Start validation for {tree_file}.")
 
-        ccd1_likelihoods = _load_ccd1_likelihood_data(tree_file)
         data_sets = _load_data(tree_file)
         data_loader, input_example = _preprocess_data(config, data_sets)
 
-        model = _load_model(config, input_example, data_loader, tree_file.stem)
+        trees = load_trees_from_file(tree_file)
+
+        model = _load_model(config, input_example, data_loader, dataset_name)
 
         logger.info("Start validation.")
 
-        log_likelihoods = []
+        sampled_trees = []
 
         for tree_batch in iter(data_loader):
             sample_batch = model.sample(tree_batch)
 
-            if len(log_likelihoods) == 0:
-                # this is the first tree, i.e. the true tree
-                sample_batch["branch_lengths"][0] = tree_batch["branch_lengths"][0]
-                sample_batch["tree_height"][0] = tree_batch["tree_height"][0]
-
-            model_log_likelihood_batch = (
-                model.get_log_likelihood(sample_batch).detach().numpy()
-            )
-
-            for i, model_log_likelihood in enumerate(model_log_likelihood_batch):
-                log_likelihood = (
-                    ccd1_likelihoods[len(log_likelihoods)] + model_log_likelihood
+            for i, tidx in enumerate(sample_batch["tree_index"]):
+                AddRelativeCladeInformation.set_branch_lengths(
+                    trees[tidx],
+                    [float(x.detach()) for x in sample_batch["branch_lengths"][i]],
+                    [int(x[i].detach()) for x in sample_batch["clades"]],
+                    float(sample_batch["tree_height"][i].detach()),
                 )
-                log_likelihoods.append(log_likelihood)
+                sampled_trees.append(trees[tidx])
 
-        with open(OUTPUT_DIR / f"{tree_file.stem}_{MODEL_NAME}.log", "w") as f:
-            f.write("tree,log_posterior\n")
-            for i, log_likelihood in enumerate(log_likelihoods):
-                f.write(f"{'true' if i == 0 else (i-1)},{log_likelihood}\n")
-
+        write_trees_to_file(
+            sampled_trees, OUTPUT_DIR / f"{dataset_name}_sampled-trees_{MODEL_NAME}.trees"
+        )
 
 if __name__ == "__main__":
-    true_tree_density_validation()
+    distribution_validation()

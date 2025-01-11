@@ -56,5 +56,4 @@ def load_trees_from_file(
 def write_trees_to_file(trees: list[Tree], tree_file: Path):
     """Writes trees to a file."""
     with open(tree_file, "w") as f:
-        for tree in trees:
-            write(tree, f, "nexus")
+        write(trees, f, "nexus")

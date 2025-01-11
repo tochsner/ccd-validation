@@ -1,4 +1,4 @@
-run_name: tuned_weight_sharing_fraction_height_yule_10
+run_name: tuned_weight_sharing_fraction_height_scaling_yule_10
 
 data_set:
   name: tree_datasets
@@ -12,14 +12,14 @@ preprocessing:
   - name: remove_tree
 
 training:
-    mlflow_experiment_name: tuned_weight_sharing_fraction_height_yule_10
+    mlflow_experiment_name: tuned_weight_sharing_fraction_height_scaling_yule_10
 
     splitting_config:
-      train_fraction: 0.7
-      test_fraction: 0.15
+      train_fraction: 0.8
+      test_fraction: 0.1
 
     dataloader_config:
-      batch_size: 256
+      batch_size: 512
       shuffle: true
 
     optimizer_config:
@@ -33,7 +33,7 @@ training:
       mask_fraction: 0.3
       height_model_name: lognormal
       encoding: fractions
-      conditioner_dropout: 0.25
+      conditioner_dropout: 0.0
 
     trainer_config:
-      max_epochs: 40
+      max_epochs: 30

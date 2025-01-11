@@ -36,7 +36,7 @@ def _create_scores_plot(df_scores: pd.DataFrame):
 
         for i, score in enumerate(SCORES):
             sns.barplot(
-                x="model", y=score, data=df[df.sample_size == "all"], ax=axs[i], errorbar=None, estimator="median"
+                x="model", y=score, data=df[df.sample_size == "all"], ax=axs[i], errorbar=None, estimator="mean"
             )
 
             axs[i].set_xlabel("Model")
@@ -44,7 +44,7 @@ def _create_scores_plot(df_scores: pd.DataFrame):
                 axs[i].get_xticks(), axs[i].get_xticklabels(), rotation=30, ha="right"
             )
 
-        fig.suptitle(f"Median Scores for Different MAP Estimators ({dataset}) on All Data ↓")
+        fig.suptitle(f"Mean Scores for Different MAP Estimators ({dataset}) on All Data ↓")
         plt.tight_layout()
 
         plt.savefig(GRAPHS_DIR / f"{dataset}_full_scores.png", dpi=200)

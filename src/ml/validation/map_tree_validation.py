@@ -19,7 +19,7 @@ OUTPUT_DIR = Path("data/map_data")
 
 MODEL_NAME = "nf-ws-fraction"
 MODELS_PATH = Path(
-    "ml_data/models/tuned_weight_sharing_fraction_height_yule_10_2025_01_11_00_02_50"
+    "ml_data/models/tuned_weight_sharing_fraction_height_scaling_yule_10_2025_01_11_23_03_42"
 )
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
@@ -92,13 +92,11 @@ def map_tree_validation():
 
         sampled_branch_lengths = [sample["branch_lengths"] for sample in samples]
         sampled_branch_lengths = torch.cat(sampled_branch_lengths, dim=0)  # type: ignore
-
-        sampled_heights = [
-            float(model.height_model.sample(**sample)) for sample in samples
-        ]
-
         mean_sample = torch.mean(sampled_branch_lengths, dim=0)
-        tree_height = sum(sampled_heights) / len(sampled_heights)
+
+        first_and_only_batch["branch_lengths"] = mean_sample.unsqueeze(0)
+        encoded_sample = model.encode(first_and_only_batch)
+        tree_height = float(model.height_model.mode(**encoded_sample))
 
         tree = load_trees_from_file(map_tree_file)[0]
 
