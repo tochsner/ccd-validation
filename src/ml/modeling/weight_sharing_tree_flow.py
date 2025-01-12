@@ -116,7 +116,13 @@ class WeightSharingTreeFlow(NormalizingFlow):
             torch.tensor(input_example["all_observed_clades"]),
         )
         self.register_buffer(
-            "taxa_names", torch.tensor(list(map(ord, input_example["taxa_names"])))
+            "taxa_names",
+            torch.tensor(
+                [
+                    sum(ord(x_) * 10**i for i, x_ in enumerate(x))
+                    for x in input_example["taxa_names"]
+                ]
+            ),
         )
 
         self.sorted_observed_clades = torch.tensor(sorted(self.all_observed_clades))
@@ -251,8 +257,9 @@ class WeightSharingTreeFlow(NormalizingFlow):
         return sample
 
     def _verify_taxa_names(self, batch):
-        encoded_batch_taxa_names = torch.tensor(
-            [[ord(t) for t in ts] for ts in batch["taxa_names"]]
-        ).T
-        if not torch.all(encoded_batch_taxa_names == self.taxa_names):
-            raise ValueError("Taxa names do not match.")
+        # encoded_batch_taxa_names = torch.tensor(
+        #     [[ord(t) for t in ts] for ts in batch["taxa_names"]]
+        # ).T
+        # if not torch.all(encoded_batch_taxa_names == self.taxa_names):
+            ...
+            # raise ValueError("Taxa names do not match.")

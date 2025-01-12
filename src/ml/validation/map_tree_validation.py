@@ -18,9 +18,7 @@ from src.datasets.load_trees import write_trees_to_file, load_trees_from_file
 OUTPUT_DIR = Path("data/map_data")
 
 MODEL_NAME = "nf-ws-fraction"
-MODELS_PATH = Path(
-    "ml_data/models/tuned_weight_sharing_fraction_height_scaling_yule_10_2025_01_12_12_28_16"
-)
+MODELS_PATH = Path("ml_data/models/weight_sharing_yule_20_2025_01_12_19_58_39")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 
@@ -97,8 +95,8 @@ def map_tree_validation():
         sampled_likelihoods = torch.cat(sampled_likelihoods, dim=0).exp().unsqueeze(1)  # type: ignore
 
         mean_sample = torch.sum(
-            sampled_branch_lengths * sampled_likelihoods * sampled_likelihoods, dim=0
-        ) / (sampled_likelihoods * sampled_likelihoods).sum(dim=0)
+            sampled_likelihoods * sampled_branch_lengths, dim=0
+        ) / sampled_likelihoods.sum(dim=0)
 
         # mean_sample = torch.mean(sampled_branch_lengths, dim=0)
 

@@ -82,7 +82,7 @@ def train_neural_network(
                 filename="{epoch:02d}-{val_loss:.2f}",
                 save_top_k=1,
             ),
-            EarlyStopping(monitor="val_loss", patience=4),
+            EarlyStopping(monitor="val_loss", patience=8),
         ],
         **trainer_config,
     )
