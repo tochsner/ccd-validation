@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from src.map_validation.tree_scores import (
     heights_error,
@@ -140,7 +141,7 @@ def map_validation():
         **{score: [] for score in SCORES.keys()},
     }
 
-    for (dataset, run, sample_size), map_files in map_trees_per_dataset.items():
+    for (dataset, run, sample_size), map_files in tqdm(list(map_trees_per_dataset.items())):
         reference_tree = load_trees_from_file(TRUE_TREE_DIR / f"{dataset}_{run}.trees")[
             0
         ]

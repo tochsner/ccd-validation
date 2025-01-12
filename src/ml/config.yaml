@@ -1,9 +1,9 @@
-run_name: tuned_weight_sharing_fraction_height_scaling_yule_10
+run_name: debug
 
 data_set:
   name: tree_datasets
   directory: data/mcmc_runs
-  glob: "yule-10_*.trees"
+  glob: "yule-10_5.trees"
   max_files: 100
 
 preprocessing:

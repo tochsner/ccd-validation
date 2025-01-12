@@ -19,7 +19,7 @@ OUTPUT_DIR = Path("data/map_data")
 
 MODEL_NAME = "nf-ws-fraction"
 MODELS_PATH = Path(
-    "ml_data/models/tuned_weight_sharing_fraction_height_scaling_yule_10_2025_01_11_23_03_42"
+    "ml_data/models/tuned_weight_sharing_fraction_height_scaling_yule_10_2025_01_12_12_28_16"
 )
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
@@ -92,7 +92,15 @@ def map_tree_validation():
 
         sampled_branch_lengths = [sample["branch_lengths"] for sample in samples]
         sampled_branch_lengths = torch.cat(sampled_branch_lengths, dim=0)  # type: ignore
-        mean_sample = torch.mean(sampled_branch_lengths, dim=0)
+
+        sampled_likelihoods = [model.get_log_likelihood(sample) for sample in samples]
+        sampled_likelihoods = torch.cat(sampled_likelihoods, dim=0).exp().unsqueeze(1)  # type: ignore
+
+        mean_sample = torch.sum(
+            sampled_branch_lengths * sampled_likelihoods * sampled_likelihoods, dim=0
+        ) / (sampled_likelihoods * sampled_likelihoods).sum(dim=0)
+
+        # mean_sample = torch.mean(sampled_branch_lengths, dim=0)
 
         first_and_only_batch["branch_lengths"] = mean_sample.unsqueeze(0)
         encoded_sample = model.encode(first_and_only_batch)

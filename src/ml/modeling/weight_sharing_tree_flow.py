@@ -63,7 +63,7 @@ class LogNormalHeightModel(nn.Module):
             (len(z),)
         )
 
-    def mode(self):
+    def mode(self, **kwargs):
         return torch.exp(self.mean)
 
 
