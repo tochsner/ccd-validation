@@ -2,6 +2,7 @@ from typing import Callable, Iterator, Literal, Optional
 import torch
 
 from torch import nn, optim, tensor
+from src.ml.modeling.layers.random_flow_layer import RandomFlowLayer
 from src.ml.modeling.layers.scale_around_mean_flow_layer import ScaleAroundMeanFlowLayer
 from src.ml.modeling.layers.unconditional_affine_coupling_flow_layer import (
     UnconditionalMaskedAffineFlowLayer,
