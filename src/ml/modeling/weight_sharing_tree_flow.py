@@ -18,10 +18,18 @@ class Conditioner(nn.Module):
         self.layers = nn.Sequential()
 
         for i in range(num_layers):
-            if i < num_layers - 1:
+            if i == 0:
                 self.layers.append(
                     nn.Sequential(
-                        nn.Linear(dim, dim),
+                        nn.Linear(dim, dim // 2),
+                        nn.ReLU(),
+                        nn.Dropout(dropout),
+                    )
+                )
+            elif i < num_layers - 1:
+                self.layers.append(
+                    nn.Sequential(
+                        nn.Linear(dim // 2, dim // 2),
                         nn.ReLU(),
                         nn.Dropout(dropout),
                     )
@@ -29,7 +37,7 @@ class Conditioner(nn.Module):
             else:
                 # we don't apply relu or dropout to the last layer
                 self.layers.append(
-                    nn.Linear(dim, dim),
+                    nn.Linear(dim // 2, dim),
                 )
 
                 # we initialize the last layer with 0 weights such that it

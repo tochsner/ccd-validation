@@ -1,6 +1,8 @@
 from loguru import logger
 from pathlib import Path
+import numpy as np
 import torch
+from torch import nn
 from torch.utils.data import DataLoader
 
 import yaml
@@ -18,7 +20,7 @@ from src.datasets.load_trees import write_trees_to_file, load_trees_from_file
 OUTPUT_DIR = Path("data/map_data")
 
 MODEL_NAME = "nf-ws-fraction"
-MODELS_PATH = Path("ml_data/models/weight_sharing_yule_20_2025_01_12_19_58_39")
+MODELS_PATH = Path("ml_data/models/tuned_weight_sharing_fraction_height_scaling_yule_10_2025_01_12_12_28_16")
 CONFIG_PATH = Path("ml_data/output/config.yaml")
 
 
@@ -83,33 +85,74 @@ def map_tree_validation():
 
         model = _load_model(config, input_example, f"{dataset}_{run}")
 
-        logger.info("Start validation.")
+        logger.info("Find convex hull.")
 
-        first_and_only_batch = next(iter(data_loader))
-        samples = [model.sample(first_and_only_batch) for _ in range(500)]
+        mrca_batch = next(iter(data_loader))
+        samples = [model.sample(mrca_batch) for _ in range(500)]
 
-        sampled_branch_lengths = [sample["branch_lengths"] for sample in samples]
-        sampled_branch_lengths = torch.cat(sampled_branch_lengths, dim=0)  # type: ignore
+        sampled_branch_lengths = torch.cat([sample["branch_lengths"] for sample in samples]) 
 
-        sampled_likelihoods = [model.get_log_likelihood(sample) for sample in samples]
-        sampled_likelihoods = torch.cat(sampled_likelihoods, dim=0).exp().unsqueeze(1)  # type: ignore
+        approximate_hull = []
 
-        mean_sample = torch.sum(
-            sampled_likelihoods * sampled_branch_lengths, dim=0
-        ) / sampled_likelihoods.sum(dim=0)
+        for dim in range(sampled_branch_lengths.shape[1]):
+            sorted_by_dim = torch.argsort(sampled_branch_lengths[:, dim])
+            approximate_hull.append(sampled_branch_lengths[sorted_by_dim[0]])
+            approximate_hull.append(sampled_branch_lengths[sorted_by_dim[-1]])
 
-        # mean_sample = torch.mean(sampled_branch_lengths, dim=0)
+        approximate_hull = torch.stack(approximate_hull)
 
-        first_and_only_batch["branch_lengths"] = mean_sample.unsqueeze(0)
-        encoded_sample = model.encode(first_and_only_batch)
+        class Module(nn.Module):
+            def __init__(self, model, approximate_hull, clades, tree_height, **kwargs):
+                super().__init__()
+                model.freeze()
+                
+                self.convex_factors = torch.nn.Parameter(torch.rand(len(approximate_hull)), requires_grad=True)
+                
+                self.approximate_hull = approximate_hull.T.detach()
+
+                self.wrapped_model = model
+                self.clades = clades
+                self.tree_height = tree_height
+
+            def loss(self):
+                normalized_convex_factors = torch.softmax(self.convex_factors, 0)
+                branch_lenghts = self.approximate_hull @ normalized_convex_factors
+
+                batch = {
+                    "branch_lengths": branch_lenghts.unsqueeze(0),
+                    "clades": self.clades,
+                    "tree_height": self.tree_height,
+                }
+
+                return -self.wrapped_model.get_log_likelihood(batch)
+
+        logger.info("Run Adam to find map.")
+
+        wrapped_model = Module(model, approximate_hull, **mrca_batch)
+        optim = torch.optim.Adam(wrapped_model.parameters(), lr=0.01)
+
+        num_steps = 2000
+        for _ in range(num_steps):
+            loss = wrapped_model.loss()
+            loss.backward()
+            optim.step()
+            optim.zero_grad()
+
+        normalized_convex_factors = torch.softmax(wrapped_model.convex_factors, 0)
+        map_branch_lenghts = wrapped_model.approximate_hull @ normalized_convex_factors
+
+        logger.info("Found map.")
+
+        mrca_batch["branch_lengths"] = map_branch_lenghts.unsqueeze(0)
+        encoded_sample = model.encode(mrca_batch)
         tree_height = float(model.height_model.mode(**encoded_sample))
 
         tree = load_trees_from_file(map_tree_file)[0]
 
         AddRelativeCladeInformation.set_branch_lengths(
             tree,
-            mean_sample.detach().numpy().tolist(),
-            [int(x.detach()) for x in first_and_only_batch["clades"]],
+            map_branch_lenghts.detach().numpy().tolist(),
+            [int(x.detach()) for x in mrca_batch["clades"]],
             tree_height,
         )
 

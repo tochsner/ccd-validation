@@ -1,9 +1,9 @@
-run_name: weight_sharing_yule_20
+run_name: weight_sharing_bottleneck_yule_20
 
 data_set:
   name: tree_datasets
   directory: data/mcmc_runs
-  glob: "yule-20_197.trees"
+  glob: "yule-20_*.trees"
   max_files: 100
 
 preprocessing:
@@ -12,7 +12,7 @@ preprocessing:
   - name: remove_tree
 
 training:
-    mlflow_experiment_name: weight_sharing_yule_20
+    mlflow_experiment_name: weight_sharing_bottleneck_yule_20
 
     splitting_config:
       train_fraction: 0.8
@@ -34,6 +34,7 @@ training:
       height_model_name: lognormal
       encoding: fractions
       conditioner_dropout: 0.0
+      conditioner_num_layers: 3
 
     trainer_config:
-      max_epochs: 50
+      max_epochs: 30

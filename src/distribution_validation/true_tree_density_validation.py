@@ -47,7 +47,7 @@ def generate_empirical_cdf_plots():
 
         assert posterior_df.iloc[0]["tree"] == "true"
         true_posterior = posterior_df.iloc[0]["log_posterior"]
-        posterior_df = posterior_df.drop(posterior_df.index[0])
+        posterior_df = posterior_df.drop(posterior_df.index[0]).dropna()
 
         dict_true_tree_percentiles["dataset_name"].append(dataset_name)
         dict_true_tree_percentiles["model_name"].append(model_name)
@@ -59,6 +59,7 @@ def generate_empirical_cdf_plots():
     df_true_tree_percentiles["rounded_true_tree_percentile"] = (
         df_true_tree_percentiles.true_tree_percentile // 10 * 10
     )
+    df_true_tree_percentiles = df_true_tree_percentiles.dropna()
 
     for dataset, df_dataset in df_true_tree_percentiles.groupby("dataset_name"):
         # plot histogram of true tree percentiles
