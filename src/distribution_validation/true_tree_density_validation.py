@@ -62,6 +62,17 @@ def generate_empirical_cdf_plots():
     df_true_tree_percentiles = df_true_tree_percentiles.dropna()
 
     for dataset, df_dataset in df_true_tree_percentiles.groupby("dataset_name"):
+        # df_dataset = df_dataset[
+        #     df_dataset.model_name.isin(["dirichlet", "sb-beta-per-clade"])
+        # ].replace(
+        #     {
+        #         "model_name": {
+        #             "dirichlet": "Dirichlet",
+        #             "sb-beta-per-clade": "Beta",
+        #         }
+        #     }
+        # )
+
         # plot histogram of true tree percentiles
         df_percentile_counts = (
             df_dataset.drop(columns="true_tree_percentile", inplace=False)
@@ -83,9 +94,7 @@ def generate_empirical_cdf_plots():
         plt.ylabel("Number of Runs")
         fig.get_legend().set_title("")
 
-        runs_per_model = int(
-            len(df_dataset) / len(df_percentile_counts["model_name"].unique())
-        )
+        runs_per_model = 100
         expected_counts = runs_per_model / 10
         lower_bound, upper_bound = binom.interval(0.95, runs_per_model, 1 / 10)
 
@@ -99,12 +108,21 @@ def generate_empirical_cdf_plots():
         # plot empirical cumulative distribution function
 
         fig = sns.ecdfplot(
-            df_dataset,
-            x="true_tree_percentile",
-            hue="model_name",
+            df_dataset, x="true_tree_percentile", hue="model_name"
         )
 
         plt.plot([0, 100], [0, 1], color="black", linestyle="solid")
+
+        for r in range(100):
+            lower_bound, upper_bound = binom.interval(0.95, runs_per_model, r / 100)
+            rect = plt.Rectangle(  # type: ignore
+                (r, lower_bound / 100),
+                1,
+                upper_bound / 100 - lower_bound / 100,
+                facecolor="gray",
+                alpha=0.2,
+            )
+            fig.add_patch(rect)
 
         plt.title(f"Empirical CDF ({dataset})")
         plt.xlabel("True Tree Percentile")

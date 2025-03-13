@@ -37,7 +37,12 @@ def _create_scores_plot(df_scores: pd.DataFrame):
 
         for i, score in enumerate(SCORES):
             sns.barplot(
-                x="model", y=score, data=df[df.sample_size == "all"], ax=axs[i], errorbar=None, estimator="median"
+                x="model",
+                y=score,
+                data=df[df.sample_size == "all"],
+                ax=axs[i],
+                errorbar=None,
+                estimator="median",
             )
 
             axs[i].set_xlabel("Model")
@@ -45,13 +50,14 @@ def _create_scores_plot(df_scores: pd.DataFrame):
                 axs[i].get_xticks(), axs[i].get_xticklabels(), rotation=30, ha="right"
             )
 
-        fig.suptitle(f"Median Scores for Different MAP Estimators ({dataset}) on All Data ↓")
+        fig.suptitle(
+            f"Median Scores for Different MAP Estimators ({dataset}) on All Data ↓"
+        )
         plt.tight_layout()
 
         plt.savefig(GRAPHS_DIR / f"{dataset}_full_scores.png", dpi=200)
         plt.clf()
         plt.close()
-
 
         # plot data likelihoods for different sample sizes
 
@@ -59,7 +65,13 @@ def _create_scores_plot(df_scores: pd.DataFrame):
 
         for i, score in enumerate(SCORES):
             sns.lineplot(
-                x="sample_size", hue="model", y=score, data=df, ax=axs[i], errorbar=None, estimator="median"
+                x="sample_size",
+                hue="model",
+                y=score,
+                data=df,
+                ax=axs[i],
+                errorbar=None,
+                estimator="median",
             )
 
             axs[i].set_xlabel("Sample Size")
@@ -76,10 +88,65 @@ def _create_scores_plot(df_scores: pd.DataFrame):
 
 
 def _create_wins_plot(df_scores: pd.DataFrame):
+    df_scores = df_scores[
+        df_scores["model"].isin(
+            ["mrca", "sb-dirichlet", "sb-clade-beta", "dirichlet", "sb-beta-per-clade", "logit-multivariate-gaussian"]
+        )
+    ].replace(
+        {
+            "model": {
+                "mrca": "MRCA",
+                "sb-dirichlet": "Dirichlet",
+                "sb-clade-beta": "Beta",
+                "dirichlet": "Dirichlet",
+                "sb-beta-per-clade": "Beta",
+                "logit-multivariate-gaussian": "Logit"
+            }
+        }
+    )
+
     logging.info(f"Create wins plot...")
 
     for dataset, df in df_scores.groupby("dataset"):
         num_sample_sizes = df["sample_size"].nunique()
+
+        # plot wins on full dataset
+
+        fig, axs = plt.subplots(
+            ncols=NUM_SCORES,
+            nrows=1,
+            figsize=(4 * NUM_SCORES, 4),
+        )
+
+        for i, score in enumerate(SCORES):
+            df_score_wins = (
+                df[df["sample_size"] == "all"]
+                .sort_values(score)
+                .drop_duplicates(["run"])
+                .sort_values("model")
+            )
+
+            sns.countplot(data=df_score_wins, x="model", ax=axs[i])
+
+            axs[i].set_xlabel("Model")
+            axs[i].set_ylabel(f"Number of Wins ({score})")
+            axs[i].set_xticks(
+                axs[i].get_xticks(),
+                axs[i].get_xticklabels(),
+                rotation=30,
+                ha="right",
+            )
+
+        fig.suptitle(
+            f"Number of Wins for Different MAP Estimators ({dataset}) ↑", y=0.99
+        )
+        plt.tight_layout()
+
+        plt.savefig(GRAPHS_DIR / f"{dataset}_full_wins.png", dpi=200)
+        plt.clf()
+        plt.close()
+
+        # plot wins on subsets
 
         fig, axs = plt.subplots(
             ncols=NUM_SCORES,
@@ -141,7 +208,9 @@ def map_validation():
         **{score: [] for score in SCORES.keys()},
     }
 
-    for (dataset, run, sample_size), map_files in tqdm(list(map_trees_per_dataset.items())):
+    for (dataset, run, sample_size), map_files in tqdm(
+        list(map_trees_per_dataset.items())
+    ):
         reference_tree = load_trees_from_file(TRUE_TREE_DIR / f"{dataset}_{run}.trees")[
             0
         ]

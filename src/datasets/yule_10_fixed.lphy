@@ -4,7 +4,6 @@ data {
     nCatGamma = 4;
     birthRate = 25;
     n = 10;
-
 }
 model {
     frequencies = [0.25, 0.25, 0.25, 0.25];
