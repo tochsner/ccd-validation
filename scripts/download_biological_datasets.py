@@ -12,10 +12,14 @@ with open("data/biological_datasets.csv", "r") as f:
         if output_file_name.exists():
             continue
         
-        with urllib.request.urlopen(f"https://datadryad.org{url}") as f:
-            data = f.read().decode('utf-8')
+        try:
+            with urllib.request.urlopen(f"https://datadryad.org{url}") as f:
+                data = f.read().decode('utf-8')
 
-        output_file_name.parent.mkdir(parents=True, exist_ok=True)
+            output_file_name.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_file_name, "w") as f:
-            f.write(data)
+            with open(output_file_name, "w") as f:
+                f.write(data)
+        except:
+            print(f"Failed to download {title}, {file_name} from {url}")
+            continue
