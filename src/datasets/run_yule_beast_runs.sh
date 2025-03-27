@@ -1,9 +1,10 @@
 # run the yule models to generate trees and alignments and create the corresponding BEAST XML files
 
+NUM_REPS=100
 export BEAST="/nesi/nobackup/nesi00390/tobia/beast/beast"
 
 # run beast to generate the posterior tree samples
-cd data/mcmc_relicas
+cd data/mcmc_replicas
 
 for n in 10 50 100 200 400; do
     for i in $(seq 1 $(($NUM_REPS - 1))); do

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+data {
+  L = 300;
+  clockRate = 1.0;
+  nCatGamma = 4;
+  birthRate = 25;
+  n = 10;
+}
+model {
+  frequencies ~ Dirichlet(conc=[5.0, 5.0, 5.0, 5.0]);
+  kappa ~ LogNormal(meanlog=1.0, sdlog=1.25);
+  Q = hky(kappa=kappa, freq=frequencies);
+  shape ~ LogNormal(meanlog=-1.0, sdlog=0.5);
+  siteRates ~ DiscretizeGamma(shape=shape, ncat=nCatGamma, replicates=L);
+  phi ~ Yule(lambda=birthRate, n=n);
+  D ~ PhyloCTMC(L=L, Q=Q, mu=clockRate, siteRates=siteRates, tree=phi);
+}
+
+-->
+<beast
+    namespace="beast.core:beast.evolution.alignment:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.nuc:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.base.evolution.tree.coalescent:beast.pkgmgmt:beast.base.core:beast.base.inference.util:beast.evolution.nuc:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood"
+    required="BEAST.base v2.7.5" version="2.7">
+
+    <data
+        id="D"
+        spec="Alignment">
+        <sequence id="Sequence" spec="Sequence" taxon="1" totalcount="4"
+            value="TCTTCTCGGTCTAAATTTTCATAATGGTTAGGACCGATCCTTTAATTTAAAGTGTGGGCCCCAATTATGTAGGTACTAGGGTGGAAACTGTGTTTATAGGTTATTGGTTTGAGCCGTAGAAGTACCCAGGGAATTTCAGAGGGGCATGTGCACTGGGGTGGTGGGGACATCATGCACGCCTCAAGCGCAACTTAAGACCGTAAAGCCAGACAAGACTCTTCTAAGACGCCTGAATGAATCGTAGGTGAGAGCGGTATTATGTGGACAGGTCTAAATTCCTCTGCCAGAAGACCCTAGAAG" />
+        <sequence id="Sequence1" spec="Sequence" taxon="2" totalcount="4"
+            value="TCTTCTCGGTCTAAATTTTCATAATGGTTAGGACCGATCCTTTAATTTAAAGTGTGGGCCCCAATTATGTAGGTACTAGGGTGGAAACTGTGTTTATAGGTTATTGGTTTGAGCCGTAGAAGTACCCAGGGAATTTCAGAGGGGCATGTGCACTGGGGTGGTGGGGACATCATGCACGCCTCAAGCGCAACTTAAGACCGTAAAGCCAGACAAGACTCTTCTAAGACGCCTGAATGAATCGTAGGTGAGAGCGGTATTATGTGGACAGGTCTAAATTCCTCTGCCAGAAGACCCTAGAAG" />
+        <sequence id="Sequence2" spec="Sequence" taxon="3" totalcount="4"
+            value="TCTTCTCGGTCTAGCTTTTCATAATGGTTAGGACCGATCATTTAATTTAAAGTGTGGGCCCCAATTATGTAGGTGCTAGGTTGGGAACTGTGTTTATAGGTTATTGGTTTGAACCGTTGAAGTACCGATGGAGTTTCAGAGGGGTATGTGCACTGCGGTGGTGGGGACATCATACACGCCTCAACCGCAACTTATGACCGTAAAGCCAGACAAGACTCTTCTAACACGCCTGAAGGACTCGTAGGAGAGATCGGTATTATGTGGACTGGTCAAAATTCCTATGCGAAAAGACCTTAGATG" />
+        <sequence id="Sequence3" spec="Sequence" taxon="6" totalcount="4"
+            value="TCTTCTCGGTCTAGCTTTTCATAATGGTTAGGACCGATCATTTAATTTAAAGTGTGGGCCCCAATTATGTAGGTGCTAGGTTGGGAACTGTGTTTATAGGTTATTGGTTTGAACCGTTGAAGTACCGATGGAGTTTCAGAGGGGTATGTGCACTGCGGTGATGGGGACATCATACACGCCTCAACCGCAACTTATGACCGTAAAGCCAGACAAGACTCTTCTAACACGCCTGAAGGACTCGTAGGAGAGATCGGTATTATGTGGACTGGTCAAAATTCCTATGCGAAAAGACCTTAGATG" />
+        <sequence id="Sequence4" spec="Sequence" taxon="4" totalcount="4"
+            value="TCTTCTCAGTCTAGAATTTCATAATGGTTGGGACCGATCTTTTAATTTAAAGTATGGGCCCCGATTATGTAGGTGCTGGGGTGGGAACTGTGTTTATAGGTTATTGGTTTGAACCGTTGAAGTACCGATGGAATTTCAGAGGGGCATGTGCACTGCGGTGGTGGGGACATCATACACGCCCCAAGCGCAACTTAAGACCGTAAAGCCAGACAAGACTCTTCTGACACGCCTGAAGGACTCGTTGGGGAGATCGGTATTATGTGGACTGGCATAAATTCCTATGCCAGAGGACCTTAGATG" />
+        <sequence id="Sequence5" spec="Sequence" taxon="0" totalcount="4"
+            value="TCTTCTCGGTCTAGAATTTCATAATGGTTGGGACCGATCATTTAATTTAAAGTGTGGGCCCCGATTAGGTAGGTGCTAGGGTGGGAACTGTGTTTATAGGTTATTGGTTTGAACCGTGGAAGTACCGATGGAATTTCAGAGGGGCATGTGCACTGCGGTGGTGGGGACATCATACACGCCTCAAGCGCAACTTAAGACCGTAAAGCCAGACAAGACTCTTCTAACACGCCTGAAGGACTCGTTGGGGAGATCGGTATTATGTGGCCTGGCAAAAATTCCTATGCCAGAGGACCTGAGATG" />
+        <sequence id="Sequence6" spec="Sequence" taxon="9" totalcount="4"
+            value="TCTTCTCGGTCTAGAATTTCATAATGGTTGGGACCGATCTTTTAATTTAAAGTGTGGGCCCCGATTATGTAGGTGCTAGGGTGGGAACTGTGTTTATAGGTTATTGGTTTGAACCGTGGAAGTACCGATGGGATTTCAGAGGGGCATGTGCACTGCGGTGGTGGGGACATCATACACGCCTCAAGCGCAACTTAAGACCGTAAAGCCAGACAAGACTCTTCTAACACGTCTGAAGGACTCGTTGGGTAGATCGGTATTATGTGGACTGGCAAAAATTCCTACGCCAGAGGACCTGAGATG" />
+        <sequence id="Sequence7" spec="Sequence" taxon="8" totalcount="4"
+            value="TCTTCTCGGTCTAGAGTTTCATAATGGTTGGGACCGATCCTTTAATTTAAAGTGTGGGCCCCAATTATGTAGGTGCTAGGGTGGGAACTATGTTTATAGGTTATTGGTTTGAACCGTTGAAGTAGCGAAGGAATTCTAGAGGGGCATGTGCACTGCGGTGGTGGGGACATCATACACGCCGCAAGCGCAACTTATGACCGTAAAGCCAGACAAGACTTTTCTAACACGCCTGAAGGACTCGTAGGGGCGAACGGTATTATGTGGACTGCTAAAAATCCCTATGCTAGAAGACCTGAGATG" />
+        <sequence id="Sequence8" spec="Sequence" taxon="5" totalcount="4"
+            value="TCTTCTCGGTCTAGAATTTCATAATGGTTGGGACCGATCCTTTAATTTAAGGTGTGGGCCCCAATTATGTAGGTGCTAGGGTGGCAACTGTGTTTATAGGTTATTGGTTTGAACCGGTGAAGTAGCGAAGGAATTCCAGAGGGGCATGTGCACTGTGGTGGTGGGGACATCATACACGCCTCAAGCGCAACTTATGACCGTAAAGCCAGACAAGACTATTCTAACACGTCTGAAGGACTCGTAGGGGGGAACGGTATTATGTGGACTGGTAAAAATCCCTATGCCAGAAGACCTGAGATG" />
+        <sequence id="Sequence9" spec="Sequence" taxon="7" totalcount="4"
+            value="TCTTCTCGGTCTAGAATTTCATAATGGTTGGGACCGATCCTTTAATTTAAAGTGTGGGCCCCAATAATGTAGGTGCTAGGGTGGGAACAATGTTTATAGGTTATTGGTTTGAACCGTTGAAGTAGCGATGGAATTCCAGAGGGGCATGTGCACTGCGGTGGTGGGGACATCATACACGCCTCAAGCGCAACTTATGACCGTAAAGCCAGACAAGACTATTCTAACACGCCTGAAGGACTCGTAGGGGAGAACGGTATTATGTGGACTGGTAAAAATCCCTATGCCAGAAGACCTGAGATG" />
+    </data>
+
+    <run id="MCMC" spec="MCMC" chainLength="50000000" preBurnin="500000">
+        <state id="State" spec="State">
+            <parameter id="frequencies" spec="parameter.RealParameter" dimension="4" keys="A C G T"
+                lower="0.0" name="stateNode" upper="1.0">0.12250404081679594 0.2674270633569204
+                0.22646244164591764 0.383606454180366</parameter>
+            <parameter id="kappa" spec="parameter.RealParameter" lower="0.0" name="stateNode">
+                1.4334668952870435</parameter>
+            <parameter id="shape" spec="parameter.RealParameter" lower="0.0" name="stateNode">
+                0.7748510810651513</parameter>
+            <stateNode id="phi" spec="beast.base.evolution.tree.TreeParser" IsLabelledNewick="true"
+                newick="((((0:0.0024749790903241375,7:0.0024749790903241375):0.009529961339106089,2:0.012004940429430226):0.06080824764202688,(3:0.05730320805491829,(((5:0.017749091344871168,9:0.017749091344871168):0.017507982705135955,8:0.03525707405000712):0.003664313045104832,4:0.038921387095111955):0.01838182095980634):0.015509980016538812):0.023303571397966336,(6:0.0163746082467705,1:0.0163746082467705):0.07974215122265293):0.0;">
+                <taxonset id="TaxonSet" spec="TaxonSet">
+                    <taxon id="0" spec="Taxon" />
+                    <taxon id="1" spec="Taxon" />
+                    <taxon id="2" spec="Taxon" />
+                    <taxon id="3" spec="Taxon" />
+                    <taxon id="4" spec="Taxon" />
+                    <taxon id="5" spec="Taxon" />
+                    <taxon id="6" spec="Taxon" />
+                    <taxon id="7" spec="Taxon" />
+                    <taxon id="8" spec="Taxon" />
+                    <taxon id="9" spec="Taxon" />
+                </taxonset>
+            </stateNode>
+        </state>
+        <distribution id="posterior" spec="CompoundDistribution">
+            <distribution id="prior" spec="CompoundDistribution">
+                <distribution id="shape.prior" spec="distribution.Prior" x="@shape">
+                    <distr id="LogNormalDistributionModel"
+                        spec="distribution.LogNormalDistributionModel">
+                        <parameter id="RealParameter" spec="parameter.RealParameter" name="M">-1.0</parameter>
+                        <parameter id="RealParameter1" spec="parameter.RealParameter" name="S">0.5</parameter>
+                    </distr>
+                </distribution>
+                <distribution id="YuleModel" spec="beast.base.evolution.speciation.YuleModel"
+                    tree="@phi">
+                    <parameter id="birthRate" spec="parameter.RealParameter" name="birthDiffRate">
+                        25.0</parameter>
+                </distribution>
+                <distribution id="kappa.prior" spec="distribution.Prior" x="@kappa">
+                    <distr id="LogNormalDistributionModel1"
+                        spec="distribution.LogNormalDistributionModel">
+                        <parameter id="RealParameter3" spec="parameter.RealParameter" name="M">1.0</parameter>
+                        <parameter id="RealParameter4" spec="parameter.RealParameter" name="S">1.25</parameter>
+                    </distr>
+                </distribution>
+                <distribution id="frequencies.prior" spec="distribution.Prior" x="@frequencies">
+                    <distr id="Dirichlet" spec="distribution.Dirichlet">
+                        <parameter id="RealParameter2" spec="parameter.RealParameter" dimension="4"
+                            estimate="false" name="alpha">5.0 5.0 5.0 5.0</parameter>
+                    </distr>
+                </distribution>
+            </distribution>
+            <distribution id="likelihood" spec="CompoundDistribution">
+                <distribution id="D.treeLikelihood" spec="ThreadedTreeLikelihood" tree="@phi">
+                    <data idref="D" />
+                    <siteModel id="SiteModel" spec="SiteModel" gammaCategoryCount="4" shape="@shape">
+                        <substModel id="HKY" spec="HKY" kappa="@kappa">
+                            <frequencies id="Frequencies" spec="Frequencies"
+                                frequencies="@frequencies" />
+                        </substModel>
+                    </siteModel>
+                    <branchRateModel id="StrictClockModel"
+                        spec="beast.base.evolution.branchratemodel.StrictClockModel">
+                        <parameter id="clockRate" spec="parameter.RealParameter" name="clock.rate">
+                            1.0</parameter>
+                    </branchRateModel>
+                </distribution>
+            </distribution>
+        </distribution>
+        <operator id="frequencies.deltaExchange" spec="operator.DeltaExchangeOperator" delta="0.25"
+            weight="2.157669279974593">
+            <parameter idref="frequencies" />
+        </operator>
+        <operator id="kappa.scale" spec="ScaleOperator" parameter="@kappa" weight="1.0" />
+        <operator id="phi.narrowExchange" spec="Exchange" tree="@phi" weight="4.655536721746079" />
+        <operator id="phi.rootAgeScale" spec="ScaleOperator" rootOnly="true" tree="@phi"
+            upper="0.975" weight="1.0" />
+        <operator id="phi.subtreeSlide" spec="SubtreeSlide" size="0.009611675946942344" tree="@phi"
+            weight="4.655536721746079" />
+        <operator id="phi.uniform" spec="Uniform" tree="@phi" weight="4.655536721746079" />
+        <operator id="phi.wideExchange" spec="Exchange" isNarrow="false" tree="@phi"
+            weight="1.5518455739153598" />
+        <operator id="phi.wilsonBalding" spec="WilsonBalding" tree="@phi"
+            weight="1.5518455739153598" />
+        <operator id="shape.scale" spec="ScaleOperator" parameter="@shape" weight="1.0" />
+        <operator id="phi.scale" spec="ScaleOperator" tree="@phi" upper="0.975"
+            weight="4.655536721746079" />
+        <logger id="ScreenLogger" spec="Logger" logEvery="100000">
+            <log idref="posterior" />
+            <log idref="likelihood" />
+            <log idref="prior" />
+            <log idref="frequencies" />
+            <log idref="kappa" />
+            <log idref="shape" />
+        </logger>
+        <logger id="Logger" spec="Logger" fileName="yule-n10-1.log" logEvery="1000">
+            <log idref="posterior" />
+            <log idref="likelihood" />
+            <log idref="prior" />
+            <log idref="frequencies" />
+            <log idref="kappa" />
+            <log idref="shape" />
+            <log id="TreeStatLogger" spec="beast.base.evolution.tree.TreeStatLogger" tree="@phi" />
+            <log idref="D.treeLikelihood" />
+        </logger>
+        <logger id="phi.treeLogger" spec="Logger" fileName="yule-n10-1.trees" logEvery="1000"
+            mode="tree">
+            <log idref="phi" />
+        </logger>
+    </run>
+
+</beast>
