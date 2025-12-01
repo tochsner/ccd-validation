@@ -15,6 +15,16 @@ subsample-ess-hpc:
 	mkdir -p data/subsampled-to-ess
 	sbatch --time=24:00:00 --mem-per-cpu=4G --cpus-per-task=16 -o data/subsampled-to-ess/out_err/out -e data/subsampled-to-ess/out_err/err --wrap="java -jar src/jars/SubsampleToESS.jar data/mcmc data/subsampled-to-ess"
 
+split-train-test:
+	mkdir -p data/train
+	mkdir -p data/test
+	java -jar src/jars/SplitIntoTrainTest.jar data/subsampled-to-ess data/train data/test
+
+split-train-test-hpc:
+	module load stack/2024-06 gcc/12.2.0 openjdk/17.0.8.1_1
+	mkdir -p data/subsampled-to-ess
+	sbatch --time=24:00:00 --mem-per-cpu=4G --cpus-per-task=16 -o data/train/out_err/out -e data/train/out_err/err --wrap="java -jar src/jars/SplitIntoTrainTest.jar data/subsampled-to-ess data/train data/test"
+
 subsample:
 	python src/preprocessing/subsample_datasets.py
 
