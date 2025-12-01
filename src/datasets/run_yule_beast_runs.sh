@@ -1,6 +1,6 @@
 # run the BEAST 2 xmls
 
-NUM_REPS=50
+NUM_REPS=100
 
 mkdir -p data
 mkdir -p data/mcmc
