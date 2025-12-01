@@ -6,6 +6,10 @@ run-simulations:
 run-beast:
 	uv run sh src/datasets/run_yule_beast_runs.sh
 
+subsample-ess:
+	mkdir -p data/subsampled-to-ess
+	java -jar src/jars/SubsampleToESS.jar data/mcmc data/subsampled-to-ess
+
 subsample:
 	python src/preprocessing/subsample_datasets.py
 
