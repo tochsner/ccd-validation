@@ -3,7 +3,7 @@ set dotenv-load
 run-simulations:
 	uv run sh src/datasets/create_yule_datasets.sh
 
-run_beast:
+run-beast:
 	uv run sh src/datasets/run_yule_beast_runs.sh
 
 subsample:

@@ -1,6 +1,7 @@
 # run the yule models to generate trees and alignments and create the corresponding BEAST XML files
 
-mkdir data/lphy
+mkdir -p data
+mkdir -p data/lphy
 
 NUM_REPS=100
 CHAIN_LENGTH=35000000
