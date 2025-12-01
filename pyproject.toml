@@ -1,40 +1,20 @@
 [project]
 name = "ccd-validation"
 version = "0.1.0"
-description = "Default template for PDM package"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "biopython>=1.86",
+    "jupyterlab>=4.5.0",
+    "loguru>=0.7.3",
+    "numpy>=2.3.5",
+    "pandas>=2.3.3",
+    "pytest>=9.0.1",
+    "scipy>=1.16.3",
+    "seaborn>=0.13.2",
+    "tqdm>=4.67.1",
+]
 authors = [
     {name = "Tobia Ochsner", email = "tobia.ochsner@inf.ethz.ch"},
 ]
-dependencies = [
-    "biopython>=1.84",
-    "numpy>=2.1.2",
-    "pandas>=2.2.3",
-    "jupyterlab>=4.2.5",
-    "python-nexus>=2.9.0",
-    "tqdm>=4.66.5",
-    "seaborn>=0.13.2",
-    "scipy>=1.14.1",
-    "matplotlib-venn>=1.1.1",
-    "plotly>=5.24.1",
-    "kaleido!=0.2.1.post1",
-    "statsmodels>=0.14.4",
-    "NetworkX>=3.4.2",
-    "torch>=2.5.1",
-    "lightning>=2.4.0",
-    "scikit-learn>=1.6.0",
-    "loguru>=0.7.3",
-    "comet-ml>=3.47.4",
-    "mlflow>=2.19.0",
-    "optuna>=4.1.0",
-    "optuna-dashboard>=0.17.0",
-    "geomstats>=2.8.0",
-    "pytest>=8.3.4",
-    "bs4>=0.0.2",
-]
-requires-python = "==3.11.*"
-readme = "README.md"
-license = {text = "MIT"}
-
-
-[tool.pdm]
-distribution = false
