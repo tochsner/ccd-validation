@@ -1,7 +1,10 @@
-.PHONY: run
+set dotenv-load
 
 run-simulations:
-	sh src/datasets/create_yule_10_dataset.sh
+	uv run sh src/datasets/create_yule_datasets.sh
+
+run_beast:
+	uv run sh src/datasets/run_yule_beast_runs.sh
 
 subsample:
 	python src/preprocessing/subsample_datasets.py
