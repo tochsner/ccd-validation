@@ -10,6 +10,11 @@ subsample-ess:
 	mkdir -p data/subsampled-to-ess
 	java -jar src/jars/SubsampleToESS.jar data/mcmc data/subsampled-to-ess
 
+subsample-ess-hpc:
+	module load stack/2024-06 gcc/12.2.0 openjdk/17.0.8.1_1
+	mkdir -p data/subsampled-to-ess
+	sbatch --time=24:00:00 --mem-per-cpu=4G --cpus-per-task=16 -o data/subsampled-to-ess/out_err/out -e data/subsampled-to-ess/out_err/err --wrap="java -jar src/jars/SubsampleToESS.jar data/mcmc data/subsampled-to-ess"
+
 subsample:
 	python src/preprocessing/subsample_datasets.py
 

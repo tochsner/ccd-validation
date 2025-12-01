@@ -5,8 +5,8 @@ Required env variables:
 
 Pipeline:
 
-1. MCMC runs should be stored in `data/mcmc_runs`. The BEAST xml and the true tree should be stored in `data/mcmc_config` directory.
-2. Run `ThinOutMCMCRuns` to thin out the MCMC runs to ESS trees.
+1. MCMC runs should be stored in `data/mcmc`. The BEAST xml and the true tree should be stored in `data/lphy` directory.
+2. Run `subsample-ess-hpc` (or `subsample-ess`) to thin out the MCMC runs to ESS trees.
 
 True Tree Density Validation:
 
