@@ -16,9 +16,10 @@ from src.datasets.load_trees import load_trees_from_file
 logging.getLogger().setLevel(logging.INFO)
 sns.set_style("darkgrid")
 
-TRUE_TREE_DIR = Path("data/mcmc_config")
-MAP_TREE_DIR = Path("data/map_data")
+TRUE_TREE_DIR = Path("data/lphy")
+MAP_TREE_DIR = Path("data/map")
 GRAPHS_DIR = Path("plots/map_plots")
+GRAPHS_DIR.mkdir(exist_ok=True, parents=True)
 
 SCORES = {
     "Squared Rooted Branch Score": squared_rooted_branch_score,
@@ -28,7 +29,7 @@ NUM_SCORES = len(SCORES)
 
 
 def _create_scores_plot(df_scores: pd.DataFrame):
-    logging.info(f"Create score plot...")
+    logging.info("Create score plot...")
 
     for dataset, df in df_scores.groupby("dataset"):
         # plot data likelihoods on full dataset
@@ -90,7 +91,14 @@ def _create_scores_plot(df_scores: pd.DataFrame):
 def _create_wins_plot(df_scores: pd.DataFrame):
     df_scores = df_scores[
         df_scores["model"].isin(
-            ["mrca", "sb-dirichlet", "sb-clade-beta", "dirichlet", "sb-beta-per-clade", "logit-multivariate-gaussian"]
+            [
+                "mrca",
+                "sb-dirichlet",
+                "sb-clade-beta",
+                "dirichlet",
+                "sb-beta-per-clade",
+                "logit-multivariate-gaussian",
+            ]
         )
     ].replace(
         {
@@ -100,7 +108,7 @@ def _create_wins_plot(df_scores: pd.DataFrame):
                 "sb-clade-beta": "Beta",
                 "dirichlet": "Dirichlet",
                 "sb-beta-per-clade": "Beta",
-                "logit-multivariate-gaussian": "Logit"
+                "logit-multivariate-gaussian": "Logit",
             }
         }
     )
@@ -146,46 +154,9 @@ def _create_wins_plot(df_scores: pd.DataFrame):
         plt.clf()
         plt.close()
 
-        # plot wins on subsets
-
-        fig, axs = plt.subplots(
-            ncols=NUM_SCORES,
-            nrows=num_sample_sizes,
-            figsize=(4 * NUM_SCORES, 4 * num_sample_sizes),
-        )
-
-        for i, score in enumerate(SCORES):
-            for j, sample_size in enumerate(df["sample_size"].unique()):
-                df_score_wins = (
-                    df[df["sample_size"] == sample_size]
-                    .sort_values(score)
-                    .drop_duplicates(["run"])
-                    .sort_values("model")
-                )
-
-                sns.countplot(data=df_score_wins, x="model", ax=axs[j, i])
-
-                axs[j, i].set_xlabel(f"Model trained on {sample_size} trees")
-                axs[j, i].set_ylabel(f"Number of Wins ({score})")
-                axs[j, i].set_xticks(
-                    axs[j, i].get_xticks(),
-                    axs[j, i].get_xticklabels(),
-                    rotation=30,
-                    ha="right",
-                )
-
-        fig.suptitle(
-            f"Number of Wins for Different MAP Estimators ({dataset}) ↑", y=0.99
-        )
-        plt.tight_layout()
-
-        plt.savefig(GRAPHS_DIR / f"{dataset}_wins.png", dpi=200)
-        plt.clf()
-        plt.close()
-
 
 def map_validation():
-    logging.info(f"Load trees...")
+    logging.info("Load trees...")
 
     map_trees_per_dataset = defaultdict(list)
 
@@ -193,12 +164,9 @@ def map_validation():
         file_name_wo_ext = map_tree.name.removesuffix(".trees")
         dataset_name, run, sample_size, model_name = file_name_wo_ext.split("_")
 
-        if int(sample_size) > 1000:
-            sample_size = "all"
-
         map_trees_per_dataset[(dataset_name, run, sample_size)].append(map_tree)
 
-    logging.info(f"Calculate scores...")
+    logging.info("Calculate scores...")
 
     scores_dict = {
         "model": [],
@@ -211,9 +179,9 @@ def map_validation():
     for (dataset, run, sample_size), map_files in tqdm(
         list(map_trees_per_dataset.items())
     ):
-        reference_tree = load_trees_from_file(TRUE_TREE_DIR / f"{dataset}_{run}.trees")[
-            0
-        ]
+        reference_tree = load_trees_from_file(
+            TRUE_TREE_DIR / f"{dataset}-{run}_true_phi.trees"
+        )[0]
 
         for map_file in map_files:
             file_name_wo_ext = map_file.name.removesuffix(".trees")

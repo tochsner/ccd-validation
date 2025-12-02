@@ -51,7 +51,14 @@ posterior-ratio-validation:
 	python src/distribution_validation/posterior_ratio_validation.py
 
 map-validation:
-	python src/map_validation/map_validation.py
+	mkdir -p data/map
+	java -jar src/jars/MapValidation.jar data/mcmc data/test data/map
+	uv run python -m src.map_validation.map_validation
+
+map-validation-hpc:
+	mkdir -p data/map
+	sbatch --time=24:00:00 --mem-per-cpu=4G --cpus-per-task=16 -o data/train/out_err/out -e data/train/out_err/err --wrap="java -jar src/jars/MapValidation.jar data/mcmc data/test data/map"
+	uv run python -m src.map_validation.map_validation
 
 goodness-of-fit-validation:
 	python src/distribution_validation/goodness_of_fit_validation.py
