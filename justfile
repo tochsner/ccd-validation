@@ -25,6 +25,16 @@ split-train-test-hpc:
 	mkdir -p data/subsampled-to-ess
 	sbatch --time=24:00:00 --mem-per-cpu=4G --cpus-per-task=16 -o data/train/out_err/out -e data/train/out_err/err --wrap="java -jar src/jars/SplitIntoTrainTest.jar data/subsampled-to-ess data/train data/test"
 
+likelihood-validation:
+	mkdir -p data/likelihood
+	java -jar src/jars/LikelihoodValidation.jar data/train data/test data/likelihood
+	uv run src/distribution_validation/data_likelihood_validation.py
+
+likelihood-validation-hcp:
+	mkdir -p data/likelihood
+	sbatch --time=24:00:00 --mem-per-cpu=4G --cpus-per-task=16 -o data/train/out_err/out -e data/train/out_err/err --wrap="java -jar src/jars/LikelihoodValidation.jar data/train data/test data/likelihood"
+	uv run src/distribution_validation/data_likelihood_validation.py
+
 subsample:
 	python src/preprocessing/subsample_datasets.py
 
@@ -42,9 +52,6 @@ posterior-ratio-validation:
 
 map-validation:
 	python src/map_validation/map_validation.py
-
-likelihood-validation:
-	python src/distribution_validation/data_likelihood_validation.py
 
 goodness-of-fit-validation:
 	python src/distribution_validation/goodness_of_fit_validation.py
