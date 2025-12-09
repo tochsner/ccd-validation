@@ -6,6 +6,9 @@ run-simulations:
 run-beast:
 	uv run sh src/datasets/run_yule_beast_runs.sh
 
+process-trees:
+	sh src/distribution_validation/process_trees_hpc.sh
+
 subsample-ess:
 	mkdir -p data/subsampled-to-ess
 	java -jar src/jars/SubsampleToESS.jar data/mcmc data/subsampled-to-ess
