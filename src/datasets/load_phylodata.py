@@ -1,9 +1,10 @@
 from pathlib import Path
+import shutil
 from phylodata import FileType, load_experiments, ExperimentToLoad
 
 
 def load_phylodata_experiments():
-    return load_experiments(
+    experiments = load_experiments(
         [
             ExperimentToLoad("tanoyo-2024-systematics-frn3", version=2),
             # ExperimentToLoad("tanoyo-2024-systematics-5flw", version=2),
@@ -67,3 +68,15 @@ def load_phylodata_experiments():
         files_to_download=[FileType.POSTERIOR_TREES],
         directory=Path("data/phylodata"),
     )
+
+    # copy them into the data folder structure to be organized in the same way as the yule datasets
+    for experiment in experiments:
+        trees_file = experiment.get_file_of_type(FileType.POSTERIOR_TREES).local_path
+
+        mcmc_name = f"phylodata-phylodata-{experiment.experiment.human_readable_id.replace('-', '_')}.trees"
+        mcmc_file = Path("data/mcmc") / mcmc_name
+
+        if not mcmc_file.exists():
+            shutil.copyfile(trees_file, mcmc_file)
+
+    return experiments

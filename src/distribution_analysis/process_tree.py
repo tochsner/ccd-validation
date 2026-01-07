@@ -164,7 +164,7 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
         df_dict["ratio"].append(
             1
             - (clade_split.tree_height - clade_split.height)
-            / (clade_split.tree_height - clade_split.parent_height)
+            / (clade_split.tree_height - clade_split.parent_height + 1e-16)
         )
 
         df_dict["left_ratio"].append(
@@ -173,6 +173,7 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
             / (
                 clade_split.left_clade.tree_height
                 - clade_split.left_clade.parent_height
+                + 1e-16
             )
         )
         df_dict["right_ratio"].append(
@@ -181,6 +182,7 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
             / (
                 clade_split.right_clade.tree_height
                 - clade_split.right_clade.parent_height
+                + 1e-16
             )
         )
 
@@ -188,7 +190,11 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
             df_dict["parent_ratio"].append(
                 1
                 - (clade_split.parent.tree_height - clade_split.parent.height)
-                / (clade_split.parent.tree_height - clade_split.parent.parent_height)
+                / (
+                    clade_split.parent.tree_height
+                    - clade_split.parent.parent_height
+                    + 1e-16
+                )
             )
         else:
             df_dict["parent_ratio"].append(None)
