@@ -7,7 +7,7 @@ run-beast:
 	uv run sh src/datasets/run_yule_beast_runs.sh
 
 process-trees:
-	sh src/distribution_validation/process_trees_hpc.sh
+	sh src/distribution_validation/process_trees.sh
 
 subsample-ess:
 	mkdir -p data/subsampled-to-ess
