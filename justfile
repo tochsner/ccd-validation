@@ -87,3 +87,6 @@ tune:
 
 ml-flow-ui:
 	mlflow ui
+
+copy-jars:
+	cp ../BCCD/out/artifacts/ProcessTrees_jar/ProcessTrees.jar src/jars
