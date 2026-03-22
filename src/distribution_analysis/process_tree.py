@@ -148,8 +148,19 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
         df_dict["clade_split"].append(str(clade_split))
         df_dict["clade"].append(ObservedNode.__str__(clade_split))
 
-        left = clade_split.left_clade.height - clade_split.height
-        right = clade_split.right_clade.height - clade_split.height
+        # we treat the smaller child as left, the bigger as right
+        if (
+            clade_split.left_clade.node_bitstring.bit_count()
+            < clade_split.right_clade.node_bitstring.bit_count()
+        ):
+            left_clade = clade_split.left_clade
+            right_clade = clade_split.right_clade
+        else:
+            left_clade = clade_split.right_clade
+            right_clade = clade_split.left_clade
+
+        left = left_clade.height - clade_split.height
+        right = right_clade.height - clade_split.height
 
         df_dict["left_branch"].append(left)
         df_dict["right_branch"].append(right)
@@ -169,21 +180,13 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
 
         df_dict["left_ratio"].append(
             1
-            - (clade_split.left_clade.tree_height - clade_split.left_clade.height)
-            / (
-                clade_split.left_clade.tree_height
-                - clade_split.left_clade.parent_height
-                + 1e-16
-            )
+            - (left_clade.tree_height - left_clade.height)
+            / (left_clade.tree_height - left_clade.parent_height + 1e-16)
         )
         df_dict["right_ratio"].append(
             1
-            - (clade_split.right_clade.tree_height - clade_split.right_clade.height)
-            / (
-                clade_split.right_clade.tree_height
-                - clade_split.right_clade.parent_height
-                + 1e-16
-            )
+            - (right_clade.tree_height - right_clade.height)
+            / (right_clade.tree_height - right_clade.parent_height + 1e-16)
         )
 
         if 1 < clade_split.distance_to_root:
@@ -200,57 +203,33 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
             df_dict["parent_ratio"].append(None)
 
         if left < right:
-            if not isinstance(clade_split.left_clade, ObservedCladeSplit):
+            if not isinstance(left_clade, ObservedCladeSplit):
                 df_dict["min_branch_down"].append(None)
             else:
-                left = (
-                    clade_split.left_clade.left_clade.height
-                    - clade_split.left_clade.height
-                )
-                right = (
-                    clade_split.left_clade.right_clade.height
-                    - clade_split.left_clade.height
-                )
+                left = left_clade.left_clade.height - left_clade.height
+                right = left_clade.right_clade.height - left_clade.height
                 df_dict["min_branch_down"].append(min(left, right))
 
-            if not isinstance(clade_split.right_clade, ObservedCladeSplit):
+            if not isinstance(right_clade, ObservedCladeSplit):
                 df_dict["max_min_branch_down"].append(None)
             else:
-                left = (
-                    clade_split.right_clade.left_clade.height
-                    - clade_split.right_clade.height
-                )
-                right = (
-                    clade_split.right_clade.right_clade.height
-                    - clade_split.right_clade.height
-                )
+                left = right_clade.left_clade.height - right_clade.height
+                right = right_clade.right_clade.height - right_clade.height
                 df_dict["max_min_branch_down"].append(min(left, right))
 
         else:
-            if not isinstance(clade_split.right_clade, ObservedCladeSplit):
+            if not isinstance(right_clade, ObservedCladeSplit):
                 df_dict["min_branch_down"].append(None)
             else:
-                left = (
-                    clade_split.right_clade.left_clade.height
-                    - clade_split.right_clade.height
-                )
-                right = (
-                    clade_split.right_clade.right_clade.height
-                    - clade_split.right_clade.height
-                )
+                left = right_clade.left_clade.height - right_clade.height
+                right = right_clade.right_clade.height - right_clade.height
                 df_dict["min_branch_down"].append(min(left, right))
 
-            if not isinstance(clade_split.left_clade, ObservedCladeSplit):
+            if not isinstance(left_clade, ObservedCladeSplit):
                 df_dict["max_min_branch_down"].append(None)
             else:
-                left = (
-                    clade_split.left_clade.left_clade.height
-                    - clade_split.left_clade.height
-                )
-                right = (
-                    clade_split.left_clade.right_clade.height
-                    - clade_split.left_clade.height
-                )
+                left = left_clade.left_clade.height - left_clade.height
+                right = left_clade.right_clade.height - left_clade.height
                 df_dict["max_min_branch_down"].append(min(left, right))
 
         df_dict["distance_to_root"].append(clade_split.distance_to_root)
