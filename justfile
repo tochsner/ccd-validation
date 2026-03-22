@@ -9,6 +9,9 @@ run-beast:
 process-trees:
 	sh src/distribution_validation/process_trees.sh
 
+process-phylodata-trees:
+	sh src/distribution_validation/process_phylodata_trees.sh
+
 subsample-ess:
 	mkdir -p data/subsampled-to-ess
 	java -jar src/jars/SubsampleToESS.jar data/mcmc data/subsampled-to-ess

@@ -20,6 +20,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "seaborn-qqplot>=0.5.0",
     "tqdm>=4.67.1",
+    "treeswift>=1.1.45",
 ]
 authors = [
     {name = "Tobia Ochsner", email = "tobia.ochsner@inf.ethz.ch"},
