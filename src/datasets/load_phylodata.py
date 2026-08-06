@@ -38,7 +38,9 @@ def load_phylodata_experiments():
         trees_file = experiment.get_file_of_type(FileType.POSTERIOR_TREES).local_path
 
         mcmc_name = f"phylodata-phylodata-{experiment.experiment.human_readable_id.replace('-', '_')}.trees"
-        mcmc_file = Path("data/mcmc") / mcmc_name
+        mcmc_path = Path("data/mcmc")
+        mcmc_path.mkdir(parents=True, exist_ok=True)
+        mcmc_file = mcmc_path / mcmc_name
 
         if not mcmc_file.exists():
             shutil.copyfile(trees_file, mcmc_file)
