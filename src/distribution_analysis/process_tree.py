@@ -155,6 +155,19 @@ def get_clade_split_df(clade_splits: list[ObservedCladeSplit]) -> pd.DataFrame:
         ):
             left_clade = clade_split.left_clade
             right_clade = clade_split.right_clade
+        elif (
+            clade_split.left_clade.node_bitstring.bit_count()
+            > clade_split.right_clade.node_bitstring.bit_count()
+        ):
+            left_clade = clade_split.right_clade
+            right_clade = clade_split.left_clade
+        # in case of a tie, we order the clades by the smallest node wrt. the given node order
+        elif (
+            clade_split.left_clade.node_bitstring
+            > clade_split.right_clade.node_bitstring
+        ):
+            left_clade = clade_split.left_clade
+            right_clade = clade_split.right_clade
         else:
             left_clade = clade_split.right_clade
             right_clade = clade_split.left_clade

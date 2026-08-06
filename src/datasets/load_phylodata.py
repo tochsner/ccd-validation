@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 from phylodata import FileType, load_experiments, ExperimentToLoad
+import re
 
 
 def load_phylodata_experiments():
@@ -43,3 +44,35 @@ def load_phylodata_experiments():
             shutil.copyfile(trees_file, mcmc_file)
 
     return experiments
+
+
+def print_latex_table(experiments: list) -> str:
+    # return a string for a latex table
+    # columns: Paper | Number of Samples | Number of Trees
+    # table is styled according to the example in the docstring below
+
+    table_header = (
+        "\\begin{tabular}{@{}lcc@{}}\n"
+        "    \\toprule\n"
+        "    PhyloData Experiment & Number of Samples & Number of Trees \\\\\n"
+        "    \\midrule\n"
+    )
+
+    table_rows = ""
+    for experiment in experiments:
+        # take the label value from the first word after @article{ or @online{
+        match = re.match(r"@\w+\{([^,]+),", experiment.paper.bibtex)
+        citation_label = (
+            match.group(1)
+            if match
+            else experiment.experiment.human_readable_id.replace("-", "_")
+        )
+
+        num_samples = experiment.trees.number_of_tips
+        num_trees = experiment.trees.number_of_trees
+        table_rows += f"   {experiment.experiment.human_readable_id}~\\cite{{{citation_label}}} & {num_samples} & {num_trees} \\\\\n"
+
+    table_footer = "    \\bottomrule\n\\end{tabular}"
+
+    latex_table = table_header + table_rows + table_footer
+    return latex_table
